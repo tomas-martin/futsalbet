@@ -40,13 +40,14 @@ export const errorHandler = (
   const statusCode = err.statusCode || 500;
   const message = err.isOperational ? err.message : 'Error interno del servidor';
 
-  if (process.env.NODE_ENV === 'development') {
-    console.error('❌ Error:', err);
-  }
+  // Always log the error
+  console.error('❌ Error:', err?.message, err?.stack);
 
   res.status(statusCode).json({
     error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    // Expose details temporarily for debugging
+    debug: err?.message,
+    code: (err as any)?.code,
   });
 };
 
