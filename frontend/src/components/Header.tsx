@@ -25,15 +25,15 @@ export const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/* LOGO */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-600/30 group-hover:scale-105 transition duration-200">
-            <span className="text-white font-black text-xl tracking-wider">FB</span>
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30 group-hover:scale-105 transition duration-200 border-2 border-orange-500/40">
+            <img src="/logo.jpg" alt="FutsalBet Logo" className="w-full h-full object-cover" />
           </div>
           <div>
-            <span className="font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-400 bg-clip-text text-transparent">
-              FUTSAL<span className="text-purple-500">BET</span>
+            <span className="font-black text-xl tracking-tight bg-gradient-to-r from-white via-orange-100 to-orange-400 bg-clip-text text-transparent">
+              FUTSAL<span className="text-orange-500">BET</span>
             </span>
-            <span className="block text-[9px] font-semibold text-purple-400 tracking-wider uppercase leading-none">
-              Mendoza • Puntos Virtuales
+            <span className="block text-[9px] font-semibold text-orange-400 tracking-wider uppercase leading-none">
+              FEFUSA Mendoza • Primera FSP
             </span>
           </div>
         </Link>

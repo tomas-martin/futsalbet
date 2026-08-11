@@ -2,16 +2,55 @@
 <html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FutsalBet — Apuestas Recreativas con Puntos Virtuales</title>
-    <meta name="description" content="Plataforma de pronósticos y apuestas recreativas para futsal mendocino. 100% puntos virtuales, sin dinero real." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="FutsalBet" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <link rel="apple-touch-icon" href="/icon-192.jpg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.jpg" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.jpg" />
+
+    <!-- SEO -->
+    <title>FutsalBet — FEFUSA Mendoza Primera FSP 2026</title>
+    <meta name="description" content="Plataforma recreativa de pronósticos para el torneo FEFUSA Mendoza Primera FSP Clausura 2026. 100% puntos virtuales, sin dinero real." />
+    <meta name="keywords" content="futsal, mendoza, FEFUSA, apuestas, pronósticos, torneo, primera FSP" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="FutsalBet — FEFUSA Mendoza" />
+    <meta property="og:description" content="Pronósticos recreativos del torneo FEFUSA Primera FSP Clausura 2026" />
+    <meta property="og:image" content="/logo.jpg" />
+    <meta property="og:type" content="website" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Splash screen color -->
+    <meta name="msapplication-navbutton-color" content="#f97316" />
+    <meta name="msapplication-starturl" content="/" />
   </head>
-  <body class="bg-slate-950 text-slate-100 font-['Inter',sans-serif] antialiased selection:bg-purple-600 selection:text-white min-h-screen">
+  <body class="bg-slate-950 text-slate-100 font-['Inter',sans-serif] antialiased selection:bg-orange-500 selection:text-white min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('✅ SW registrado:', reg.scope))
+            .catch(err => console.log('❌ SW error:', err));
+        });
+      }
+    </script>
   </body>
 </html>
