@@ -1,0 +1,104 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './context/AuthContext';
+import { BetSlipProvider } from './context/BetSlipContext';
+
+import { VirtualBanner } from './components/VirtualBanner';
+import { Header } from './components/Header';
+import { Navbar } from './components/Navbar';
+import { BottomNav } from './components/BottomNav';
+import { BetSlip } from './components/BetSlip';
+
+import { Home } from './pages/Home';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Partidos } from './pages/Partidos';
+import { MatchDetail } from './pages/MatchDetail';
+import { EnVivo } from './pages/EnVivo';
+import { Resultados } from './pages/Resultados';
+import { Torneos } from './pages/Torneos';
+import { TorneoDetail } from './pages/TorneoDetail';
+import { Equipos } from './pages/Equipos';
+import { EquipoDetail } from './pages/EquipoDetail';
+import { Ranking } from './pages/Ranking';
+import { Perfil } from './pages/Perfil';
+import { MisApuestas } from './pages/MisApuestas';
+import { MisPuntos } from './pages/MisPuntos';
+import { Favoritos } from './pages/Favoritos';
+import { Ayuda } from './pages/Ayuda';
+
+import { AdminLayout } from './pages/admin/AdminLayout';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminUsuarios } from './pages/admin/AdminUsuarios';
+import { AdminPartidos } from './pages/admin/AdminPartidos';
+import { AdminCuotas } from './pages/admin/AdminCuotas';
+import { AdminLogs } from './pages/admin/AdminLogs';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+export const App: React.FC = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BetSlipProvider>
+          <BrowserRouter>
+            <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-16 md:pb-0">
+              <VirtualBanner />
+              <Header />
+              <Navbar />
+
+              <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Home />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/partidos" element={<Partidos />} />
+                  <Route path="/partidos/:id" element={<MatchDetail />} />
+                  <Route path="/en-vivo" element={<EnVivo />} />
+                  <Route path="/resultados" element={<Resultados />} />
+                  <Route path="/torneos" element={<Torneos />} />
+                  <Route path="/torneos/:id" element={<TorneoDetail />} />
+                  <Route path="/equipos" element={<Equipos />} />
+                  <Route path="/equipos/:id" element={<EquipoDetail />} />
+                  <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/ayuda" element={<Ayuda />} />
+
+                  {/* Authenticated user routes */}
+                  <Route path="/perfil" element={<Perfil />} />
+                  <Route path="/mis-apuestas" element={<MisApuestas />} />
+                  <Route path="/mis-puntos" element={<MisPuntos />} />
+                  <Route path="/favoritos" element={<Favoritos />} />
+
+                  {/* Admin routes */}
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="usuarios" element={<AdminUsuarios />} />
+                    <Route path="partidos" element={<AdminPartidos />} />
+                    <Route path="cuotas" element={<AdminCuotas />} />
+                    <Route path="logs" element={<AdminLogs />} />
+                  </Route>
+
+                  {/* 404 */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </main>
+
+              <BetSlip />
+              <BottomNav />
+            </div>
+          </BrowserRouter>
+        </BetSlipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};

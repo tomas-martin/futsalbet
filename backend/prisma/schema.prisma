@@ -1,0 +1,470 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================
+// ENUMS
+// ===========================
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+  POSTPONED
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  VOID
+  CANCELLED
+}
+
+enum MarketStatus {
+  OPEN
+  CLOSED
+  SUSPENDED
+  SETTLED
+}
+
+enum MarketType {
+  MATCH_WINNER       // 1X2
+  DOUBLE_CHANCE      // 1X, 12, X2
+  OVER_UNDER         // Más/Menos goles
+  BOTH_TEAMS_SCORE   // Ambos marcan
+  EXACT_SCORE        // Resultado exacto
+  FIRST_TEAM_SCORE   // Primer equipo en marcar
+}
+
+enum TransactionType {
+  INITIAL_BONUS
+  BET_PLACED
+  BET_WON
+  BET_REFUNDED
+  ADMIN_ADJUSTMENT
+}
+
+enum SelectionResult {
+  PENDING
+  WON
+  LOST
+  VOID
+}
+
+// ===========================
+// USERS & AUTH
+// ===========================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  username      String    @unique
+  passwordHash  String
+  displayName   String
+  avatarUrl     String?
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true)
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  wallet        VirtualWallet?
+  bets          Bet[]
+  notifications Notification[]
+  favoriteTeams FavoriteTeam[]
+  auditLogs     AuditLog[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+// ===========================
+// WALLET & TRANSACTIONS
+// ===========================
+
+model VirtualWallet {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  balance      Decimal  @default(0) @db.Decimal(12, 2)
+  totalWon     Decimal  @default(0) @db.Decimal(12, 2)
+  totalLost    Decimal  @default(0) @db.Decimal(12, 2)
+  totalBet     Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("virtual_wallets")
+}
+
+model WalletTransaction {
+  id          String          @id @default(cuid())
+  walletId    String
+  type        TransactionType
+  amount      Decimal         @db.Decimal(12, 2)
+  balanceBefore Decimal       @db.Decimal(12, 2)
+  balanceAfter  Decimal       @db.Decimal(12, 2)
+  description String
+  betId       String?
+  createdAt   DateTime        @default(now())
+
+  wallet      VirtualWallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+}
+
+// ===========================
+// TOURNAMENTS & CATEGORIES
+// ===========================
+
+model Tournament {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  season      String
+  sport       String   @default("futsal")
+  country     String   @default("Argentina")
+  region      String   @default("Mendoza")
+  organizer   String
+  logoUrl     String?
+  description String?
+  isActive    Boolean  @default(true)
+  externalId  String?  @unique
+  source      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories  Category[]
+  standings   Standing[]
+  matches     Match[]
+  favoriteBy  FavoriteTournament[]
+
+  @@index([slug])
+  @@map("tournaments")
+}
+
+model Category {
+  id           String     @id @default(cuid())
+  tournamentId String
+  name         String
+  slug         String
+  gender       String     @default("masculino")
+  ageGroup     String?
+  division     String?
+  createdAt    DateTime   @default(now())
+
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  teams        CategoryTeam[]
+
+  @@unique([tournamentId, slug])
+  @@map("categories")
+}
+
+// ===========================
+// TEAMS
+// ===========================
+
+model Team {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  shortName    String?
+  logoUrl      String?
+  city         String?
+  country      String   @default("Argentina")
+  region       String   @default("Mendoza")
+  isActive     Boolean  @default(true)
+  externalId   String?  @unique
+  source       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  players      Player[]
+  homeMatches  Match[]  @relation("HomeTeam")
+  awayMatches  Match[]  @relation("AwayTeam")
+  standings    Standing[]
+  favoriteBy   FavoriteTeam[]
+  categories   CategoryTeam[]
+
+  @@index([slug])
+  @@map("teams")
+}
+
+model CategoryTeam {
+  id          String   @id @default(cuid())
+  categoryId  String
+  teamId      String
+  joinedAt    DateTime @default(now())
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, teamId])
+  @@map("category_teams")
+}
+
+model Player {
+  id         String   @id @default(cuid())
+  teamId     String
+  name       String
+  number     Int?
+  position   String?
+  photoUrl   String?
+  isActive   Boolean  @default(true)
+  externalId String?
+  createdAt  DateTime @default(now())
+
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@map("players")
+}
+
+// ===========================
+// MATCHES
+// ===========================
+
+model Match {
+  id           String      @id @default(cuid())
+  tournamentId String
+  homeTeamId   String
+  awayTeamId   String
+  scheduledAt  DateTime
+  venue        String?
+  round        String?
+  status       MatchStatus @default(SCHEDULED)
+  homeScore    Int?
+  awayScore    Int?
+  minute       Int?
+  extraInfo    String?
+  externalId   String?     @unique
+  source       String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id])
+  homeTeam     Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam     Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  events       MatchEvent[]
+  markets      Market[]
+
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("matches")
+}
+
+model MatchEvent {
+  id        String   @id @default(cuid())
+  matchId   String
+  minute    Int
+  type      String   // GOAL, YELLOW_CARD, RED_CARD, SUBSTITUTION, etc.
+  teamId    String?
+  playerId  String?
+  playerName String?
+  description String?
+  createdAt DateTime @default(now())
+
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@map("match_events")
+}
+
+// ===========================
+// STANDINGS
+// ===========================
+
+model Standing {
+  id           String     @id @default(cuid())
+  tournamentId String
+  teamId       String
+  position     Int
+  played       Int        @default(0)
+  won          Int        @default(0)
+  drawn        Int        @default(0)
+  lost         Int        @default(0)
+  goalsFor     Int        @default(0)
+  goalsAgainst Int        @default(0)
+  goalDiff     Int        @default(0)
+  points       Int        @default(0)
+  updatedAt    DateTime   @updatedAt
+
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  team         Team       @relation(fields: [teamId], references: [id])
+
+  @@unique([tournamentId, teamId])
+  @@index([tournamentId, points(sort: Desc)])
+  @@map("standings")
+}
+
+// ===========================
+// MARKETS & BETTING
+// ===========================
+
+model Market {
+  id          String       @id @default(cuid())
+  matchId     String
+  type        MarketType
+  name        String
+  status      MarketStatus @default(OPEN)
+  settledAt   DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  match       Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  options     MarketOption[]
+
+  @@unique([matchId, type])
+  @@index([matchId])
+  @@map("markets")
+}
+
+model MarketOption {
+  id          String          @id @default(cuid())
+  marketId    String
+  label       String
+  value       String          // e.g. "HOME", "DRAW", "AWAY", "OVER", "UNDER", "YES", "NO", "3-2"
+  odds        Decimal         @db.Decimal(6, 2)
+  isActive    Boolean         @default(true)
+  result      SelectionResult @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  market      Market          @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  selections  BetSelection[]
+
+  @@index([marketId])
+  @@map("market_options")
+}
+
+// ===========================
+// BETS
+// ===========================
+
+model Bet {
+  id              String    @id @default(cuid())
+  userId          String
+  totalOdds       Decimal   @db.Decimal(8, 2)
+  stakeAmount     Decimal   @db.Decimal(12, 2)
+  potentialPayout Decimal   @db.Decimal(12, 2)
+  actualPayout    Decimal?  @db.Decimal(12, 2)
+  status          BetStatus @default(PENDING)
+  isCombined      Boolean   @default(false)
+  settledAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User         @relation(fields: [userId], references: [id])
+  selections      BetSelection[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bets")
+}
+
+model BetSelection {
+  id             String          @id @default(cuid())
+  betId          String
+  marketOptionId String
+  odds           Decimal         @db.Decimal(6, 2)
+  result         SelectionResult @default(PENDING)
+  createdAt      DateTime        @default(now())
+
+  bet            Bet          @relation(fields: [betId], references: [id], onDelete: Cascade)
+  marketOption   MarketOption @relation(fields: [marketOptionId], references: [id])
+
+  @@map("bet_selections")
+}
+
+// ===========================
+// NOTIFICATIONS
+// ===========================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // BET_WON, BET_LOST, MATCH_START, MATCH_END, SYSTEM
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+// ===========================
+// FAVORITES
+// ===========================
+
+model FavoriteTeam {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@map("favorite_teams")
+}
+
+model FavoriteTournament {
+  id           String     @id @default(cuid())
+  userId       String
+  tournamentId String
+  createdAt    DateTime   @default(now())
+
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tournamentId])
+  @@map("favorite_tournaments")
+}
+
+// ===========================
+// AUDIT LOG
+// ===========================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entity     String
+  entityId   String?
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

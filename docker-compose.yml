@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: futsalbet-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: futsalbet
+      POSTGRES_PASSWORD: futsalbet_secret
+      POSTGRES_DB: futsalbet
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U futsalbet']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: futsalbet-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://futsalbet:futsalbet_secret@postgres:5432/futsalbet
+      JWT_SECRET: change_this_in_production_super_secret_key_2024
+      JWT_EXPIRES_IN: 7d
+      PORT: 3000
+      NODE_ENV: production
+      FRONTEND_URL: http://localhost:5173
+      INITIAL_POINTS: 1000
+    ports:
+      - '3000:3000'
+    command: >
+      sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/index.js"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: futsalbet-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '5173:80'
+
+volumes:
+  postgres_data:

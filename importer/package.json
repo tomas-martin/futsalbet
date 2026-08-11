@@ -1,0 +1,19 @@
+{
+  "name": "futsalbet-importer",
+  "version": "1.0.0",
+  "description": "Módulo desacoplado de importación de datos deportivos para FutsalBet",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.10.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
