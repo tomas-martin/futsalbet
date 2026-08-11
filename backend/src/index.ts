@@ -16,6 +16,7 @@ import { favoriteRouter } from './routes/favorite.routes';
 import { notificationRouter } from './routes/notification.routes';
 import { adminRouter } from './routes/admin.routes';
 import { marketRouter } from './routes/market.routes';
+import { syncRouter } from './routes/sync.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { startCronJobs } from './utils/cron';
 
@@ -67,12 +68,16 @@ if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
 // HEALTH CHECK
 // ===========================
 app.get('/api/health', (_req, res) => {
+  const dbUrl = process.env.DATABASE_URL || '';
+  let dbHost = 'not set';
+  try { dbHost = new URL(dbUrl).hostname + ':' + new URL(dbUrl).port; } catch {}
   res.json({
     status: 'ok',
     app: 'FutsalBet API',
     version: '1.0.0',
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
+    db: dbHost,
     note: 'Plataforma recreativa — Solo puntos virtuales, sin dinero real',
   });
 });
@@ -91,6 +96,7 @@ app.use('/api/ranking', rankingRouter);
 app.use('/api/favorites', favoriteRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/sync', syncRouter);
 
 // 404 handler
 app.use((_req, res) => {
