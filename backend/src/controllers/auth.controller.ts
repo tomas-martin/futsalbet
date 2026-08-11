@@ -25,7 +25,6 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
-
     const initialPoints = parseInt(process.env.INITIAL_POINTS || '1000');
 
     const user = await prisma.$transaction(async (tx) => {
@@ -68,10 +67,11 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       return newUser;
     });
 
+    const secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      secret,
+      { expiresIn: '7d' }
     );
 
     res.status(201).json({
@@ -120,10 +120,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       data: { lastLoginAt: new Date() },
     });
 
+    const secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      secret,
+      { expiresIn: '7d' }
     );
 
     res.json({

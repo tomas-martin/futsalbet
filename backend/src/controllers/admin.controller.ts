@@ -46,7 +46,7 @@ export const getAdminStats = async (_req: Request, res: Response, next: NextFunc
 
     // Group bets by day
     const betsByDay: Record<string, { count: number; totalStake: number }> = {};
-    for (let i = 06; i >= 0; i--) {
+    for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const key = d.toISOString().split('T')[0];
