@@ -27,10 +27,10 @@ const PORT = process.env.PORT || 3000;
 // ===========================
 // SECURITY MIDDLEWARES
 // ===========================
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: '*',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -38,8 +38,8 @@ app.use(cors({
 
 // General rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200,
+  windowMs: 15 * 60 * 1000,
+  max: 300,
   message: { error: 'Demasiadas solicitudes. Intenta nuevamente más tarde.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -49,7 +49,7 @@ app.use(limiter);
 // Stricter rate limit for auth
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 30,
   message: { error: 'Demasiados intentos de autenticación. Intenta en 15 minutos.' },
 });
 
@@ -59,7 +59,7 @@ const authLimiter = rateLimit({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.use(morgan('combined'));
 }
 
@@ -101,16 +101,14 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 // ===========================
-// START
+// START (ONLY IN STANDALONE NODE ENV)
 // ===========================
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 FutsalBet API corriendo en http://localhost:${PORT}`);
     console.log(`🎮 Plataforma recreativa — Solo puntos virtuales`);
-    console.log(`📊 Entorno: ${process.env.NODE_ENV}`);
   });
 
-  // Start background jobs
   startCronJobs();
 }
 
