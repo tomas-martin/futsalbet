@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
@@ -20,13 +22,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET;
-
-    if (!secret) {
-      throw new Error('JWT_SECRET no configurado');
-    }
-
-    const decoded = jwt.verify(token, secret) as { id: string; email: string; role: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string };
 
     // Verify user still exists and is active
     const user = await prisma.user.findUnique({
@@ -69,8 +65,7 @@ export const optionalAuth = async (req: AuthRequest, _res: Response, next: NextF
     }
 
     const token = authHeader.split(' ')[1];
-    const secret = process.env.JWT_SECRET!;
-    const decoded = jwt.verify(token, secret) as { id: string; email: string; role: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string };
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },

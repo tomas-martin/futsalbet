@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import prisma from './config/database';
 
 import { authRouter } from './routes/auth.routes';
 import { tournamentRouter } from './routes/tournament.routes';
@@ -67,10 +68,26 @@ if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
 // ===========================
 // HEALTH CHECK
 // ===========================
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (_req, res) => {
   const dbUrl = process.env.DATABASE_URL || '';
   let dbHost = 'not set';
-  try { dbHost = new URL(dbUrl).hostname + ':' + new URL(dbUrl).port; } catch {}
+  let dbStatus = 'unknown';
+
+  try {
+    const parsedUrl = new URL(dbUrl);
+    dbHost = `${parsedUrl.hostname}:${parsedUrl.port}`;
+  } catch {
+    // Leave dbHost as not set when no valid URL is configured.
+  }
+
+  try {
+    await prisma.user.findFirst({ select: { id: true } });
+    dbStatus = 'connected';
+  } catch (error) {
+    console.error('DB health check failed:', error);
+    dbStatus = 'error';
+  }
+
   res.json({
     status: 'ok',
     app: 'FutsalBet API',
@@ -78,6 +95,7 @@ app.get('/api/health', (_req, res) => {
     environment: process.env.NODE_ENV,
     timestamp: new Date().toISOString(),
     db: dbHost,
+    dbStatus,
     note: 'Plataforma recreativa — Solo puntos virtuales, sin dinero real',
   });
 });

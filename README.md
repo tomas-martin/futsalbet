@@ -133,11 +133,14 @@ futsalbet/
 1. Conecta el repositorio a Vercel.
 2. Configura la variable de entorno `VITE_API_URL=https://tu-backend.onrender.com`.
 
-### Backend (Render / Railway)
-1. Crea un servicio Web Service apuntando a `/backend`.
-2. Configura las variables:
-   - `DATABASE_URL=postgresql://...`
+### Backend (Render / Railway / Vercel)
+1. Crea un servicio Web Service apuntando a `/backend`, o despliega el backend como proyecto independiente en Vercel.
+2. Configura las variables de entorno del backend:
+   - `DATABASE_URL=postgresql://...` (usa la URL de conexión completa de Supabase/Neon/Railway, incluyendo `?sslmode=require` si aplica)
    - `JWT_SECRET=super_secret_key`
+   - `JWT_EXPIRES_IN=7d`
+   - `INITIAL_POINTS=1000`
+   - `CRON_SECRET=futsalbet_cron_secret_2026`
 
 ### Base de Datos (Neon / Supabase / Railway)
 1. Instancia una BD PostgreSQL 15+.

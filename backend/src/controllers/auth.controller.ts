@@ -1,10 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import prisma from '../config/database';
 import { registerSchema, loginSchema, changePasswordSchema } from '../validators/schemas';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { TransactionType } from '@prisma/client';
+
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -67,11 +70,10 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       return newUser;
     });
 
-    const secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      secret,
-      { expiresIn: '7d' }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN as SignOptions['expiresIn'] }
     );
 
     res.status(201).json({
@@ -120,11 +122,10 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       data: { lastLoginAt: new Date() },
     });
 
-    const secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      secret,
-      { expiresIn: '7d' }
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN as SignOptions['expiresIn'] }
     );
 
     res.json({
