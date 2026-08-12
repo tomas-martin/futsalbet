@@ -8,6 +8,7 @@ export const Resultados: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['results-page'],
     queryFn: () => apiClient.get('/matches/results?limit=30').then((res) => res.data),
+    refetchInterval: 30000,
   });
 
   return (

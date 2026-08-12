@@ -15,7 +15,7 @@ export const Partidos: React.FC = () => {
       if (tab === 'results') return apiClient.get('/matches/results').then((res) => res.data.data);
       return apiClient.get('/matches/upcoming').then((res) => res.data.data);
     },
-    refetchInterval: tab === 'live' ? 5000 : false,
+    refetchInterval: tab === 'live' ? 5000 : 30000,
   });
 
   return (

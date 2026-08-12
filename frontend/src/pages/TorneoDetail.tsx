@@ -16,11 +16,13 @@ export const TorneoDetail: React.FC = () => {
   const { data: standings } = useQuery({
     queryKey: ['tournament-standings', id],
     queryFn: () => apiClient.get(`/tournaments/${id}/standings`).then((res) => res.data.data),
+    refetchInterval: 30000,
   });
 
   const { data: matches } = useQuery({
     queryKey: ['tournament-matches', id],
     queryFn: () => apiClient.get(`/tournaments/${id}/matches`).then((res) => res.data.data),
+    refetchInterval: 30000,
   });
 
   if (!tournament) {

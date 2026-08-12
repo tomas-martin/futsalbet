@@ -9,17 +9,19 @@ export const Home: React.FC = () => {
   const { data: upcomingData } = useQuery({
     queryKey: ['matches-upcoming'],
     queryFn: () => apiClient.get('/matches/upcoming').then((res) => res.data.data),
+    refetchInterval: 30000,
   });
 
   const { data: liveData } = useQuery({
     queryKey: ['matches-live'],
     queryFn: () => apiClient.get('/matches/live').then((res) => res.data.data),
-    refetchInterval: 10000,
+    refetchInterval: 5000,
   });
 
   const { data: resultsData } = useQuery({
     queryKey: ['matches-results-home'],
     queryFn: () => apiClient.get('/matches/results?limit=4').then((res) => res.data.data),
+    refetchInterval: 30000,
   });
 
   return (

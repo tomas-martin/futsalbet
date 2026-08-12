@@ -76,7 +76,16 @@ export const getUpcomingMatches = async (_req: Request, res: Response, next: Nex
         tournament: { select: { id: true, name: true, logoUrl: true } },
         markets: {
           where: { status: 'OPEN' },
-          select: { id: true, type: true, name: true },
+          select: {
+            id: true,
+            type: true,
+            name: true,
+            options: {
+              where: { isActive: true },
+              orderBy: { odds: 'asc' },
+              select: { id: true, label: true, value: true, odds: true },
+            },
+          },
         },
       },
     });
