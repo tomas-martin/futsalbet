@@ -29,6 +29,7 @@ import { Favoritos } from './pages/Favoritos';
 import { Ayuda } from './pages/Ayuda';
 import { Prode } from './pages/Prode';
 import { Leaderboard } from './pages/Leaderboard';
+import { MisPronosticos } from './pages/MisPronosticos';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -79,6 +80,7 @@ export const App: React.FC = () => {
                   {/* Authenticated user routes */}
                   <Route path="/perfil" element={<Perfil />} />
                   <Route path="/mis-apuestas" element={<MisApuestas />} />
+                  <Route path="/mis-pronosticos" element={<MisPronosticos />} />
                   <Route path="/mis-puntos" element={<MisPuntos />} />
                   <Route path="/favoritos" element={<Favoritos />} />
 
