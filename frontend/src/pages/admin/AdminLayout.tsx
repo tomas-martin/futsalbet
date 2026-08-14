@@ -14,6 +14,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
     { to: '/admin/partidos', label: 'Partidos y Resultados', icon: Calendar },
+    { to: '/admin/predictions', label: 'Predicciones', icon: FileText },
     { to: '/admin/cuotas', label: 'Cuotas y Mercados', icon: Coins },
     { to: '/admin/logs', label: 'Audit Logs', icon: FileText },
   ];

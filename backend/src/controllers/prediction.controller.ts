@@ -62,3 +62,27 @@ export const getMyPredictions = async (req: AuthRequest, res: Response, next: Ne
     next(error);
   }
 };
+
+export const getPredictionsByMatch = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const matchId = req.params.matchId;
+    const preds = await prisma.prediction.findMany({
+      where: { matchId },
+      include: { user: { select: { id: true, username: true, displayName: true, email: true } }, match: { include: { homeTeam: true, awayTeam: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ data: preds });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deletePrediction = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const pred = await prisma.prediction.delete({ where: { id } });
+    res.json({ message: 'Predicción eliminada', prediction: pred });
+  } catch (error) {
+    next(error);
+  }
+};

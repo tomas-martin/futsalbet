@@ -141,6 +141,13 @@ export const AdminPartidos: React.FC = () => {
                       >
                         Editar
                       </button>
+
+                      <button
+                        onClick={() => { window.location.href = '/admin/predictions?match=' + m.id; }}
+                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition"
+                      >
+                        Ver Predicciones
+                      </button>
                     </td>
                   </tr>
                 ))}

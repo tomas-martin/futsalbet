@@ -35,6 +35,7 @@ import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminUsuarios } from './pages/admin/AdminUsuarios';
 import { AdminPartidos } from './pages/admin/AdminPartidos';
+import { AdminPredictions } from './pages/admin/AdminPredictions';
 import { AdminCuotas } from './pages/admin/AdminCuotas';
 import { AdminLogs } from './pages/admin/AdminLogs';
 
@@ -90,6 +91,7 @@ export const App: React.FC = () => {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="usuarios" element={<AdminUsuarios />} />
                     <Route path="partidos" element={<AdminPartidos />} />
+                    <Route path="predictions" element={<AdminPredictions />} />
                     <Route path="cuotas" element={<AdminCuotas />} />
                     <Route path="logs" element={<AdminLogs />} />
                   </Route>
