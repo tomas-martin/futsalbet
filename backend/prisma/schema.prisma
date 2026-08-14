@@ -91,6 +91,7 @@ model User {
   notifications Notification[]
   favoriteTeams FavoriteTeam[]
   auditLogs     AuditLog[]
+  predictions   Prediction[]
 
   @@index([email])
   @@index([username])
