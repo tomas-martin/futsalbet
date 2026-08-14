@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
 
@@ -12,7 +12,8 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('futsalbet_token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    // attach bearer token for backend
+    (config.headers as any).Authorization = `Bearer ${token}`;
   }
   return config;
 });

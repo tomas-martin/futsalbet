@@ -18,6 +18,7 @@ import { notificationRouter } from './routes/notification.routes';
 import { adminRouter } from './routes/admin.routes';
 import { marketRouter } from './routes/market.routes';
 import { syncRouter } from './routes/sync.routes';
+import { predictionRouter } from './routes/prediction.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { startCronJobs } from './utils/cron';
 
@@ -113,6 +114,7 @@ app.use('/api/wallet', walletRouter);
 app.use('/api/ranking', rankingRouter);
 app.use('/api/favorites', favoriteRouter);
 app.use('/api/notifications', notificationRouter);
+app.use('/api/predictions', predictionRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/sync', syncRouter);
 

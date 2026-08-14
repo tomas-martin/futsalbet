@@ -34,7 +34,7 @@ export const Register: React.FC = () => {
       if (err.response?.data?.details) {
         setError(err.response.data.details.map((d: any) => d.message).join('. '));
       } else {
-        setError(err.response?.data?.error || 'Error al crear la cuenta');
+        setError(err.response?.data?.error || err.message || 'Error al crear la cuenta');
       }
     } finally {
       setLoading(false);

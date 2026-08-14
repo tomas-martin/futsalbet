@@ -67,3 +67,9 @@ export const createMatchEventSchema = z.object({
   playerName: z.string().optional(),
   description: z.string().optional(),
 });
+
+export const createPredictionSchema = z.object({
+  matchId: z.string().min(1),
+  predictedHome: z.number().int().min(0),
+  predictedAway: z.number().int().min(0),
+});

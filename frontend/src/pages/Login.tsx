@@ -10,7 +10,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, signInWithEmail } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,6 +19,18 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // Prefer Supabase sign-in when available
+      if (signInWithEmail) {
+        try {
+          await signInWithEmail(email, password);
+          navigate('/');
+          return;
+        } catch (supErr: any) {
+          // fallback to backend
+          console.warn('Supabase sign-in failed, falling back to backend:', supErr?.message || supErr);
+        }
+      }
+
       const res = await apiClient.post('/auth/login', { email, password });
       login(res.data.token, res.data.user);
       navigate('/');

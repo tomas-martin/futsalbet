@@ -27,6 +27,8 @@ import { MisApuestas } from './pages/MisApuestas';
 import { MisPuntos } from './pages/MisPuntos';
 import { Favoritos } from './pages/Favoritos';
 import { Ayuda } from './pages/Ayuda';
+import { Prode } from './pages/Prode';
+import { Leaderboard } from './pages/Leaderboard';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -70,6 +72,8 @@ export const App: React.FC = () => {
                   <Route path="/equipos" element={<Equipos />} />
                   <Route path="/equipos/:id" element={<EquipoDetail />} />
                   <Route path="/ranking" element={<Ranking />} />
+                  <Route path="/prode" element={<Prode />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/ayuda" element={<Ayuda />} />
 
                   {/* Authenticated user routes */}
