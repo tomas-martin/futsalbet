@@ -20,8 +20,11 @@ export const createPrediction = async (req: AuthRequest, res: Response, next: Ne
       return;
     }
 
-    if (match.status !== 'SCHEDULED') {
-      res.status(400).json({ error: 'No se pueden enviar pronósticos para partidos que no están programados' });
+    // Prevent predictions after match has started — either status is no longer SCHEDULED
+    // or the scheduledAt timestamp is in the past.
+    const now = new Date();
+    if (match.status !== 'SCHEDULED' || new Date(match.scheduledAt) <= now) {
+      res.status(400).json({ error: 'No se pueden enviar pronósticos para partidos que ya comenzaron o que no están programados' });
       return;
     }
 

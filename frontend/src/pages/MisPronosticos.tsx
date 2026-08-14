@@ -27,6 +27,13 @@ export const MisPronosticos: React.FC = () => {
   });
 
   const startEdit = (pred: any) => {
+    const matchStart = new Date(pred.match.scheduledAt).getTime();
+    const now = Date.now();
+    if (pred.match.status !== 'SCHEDULED' || now >= matchStart) {
+      alert('No se pueden editar pronósticos después de iniciado el partido');
+      return;
+    }
+
     setEditingId(pred.id);
     setHomeScore(pred.predictedHome ?? 0);
     setAwayScore(pred.predictedAway ?? 0);
@@ -38,8 +45,10 @@ export const MisPronosticos: React.FC = () => {
     setAwayScore('');
   };
 
-  const submitEdit = (matchId: string) => {
+  const submitEdit = (matchId: string, scheduledAt: string) => {
     if (homeScore === '' || awayScore === '') return alert('Ingresa ambos marcadores');
+    const matchStart = new Date(scheduledAt).getTime();
+    if (Date.now() >= matchStart) return alert('No se pueden editar pronósticos después de iniciado el partido');
     saveMutation.mutate({ matchId, predictedHome: Number(homeScore), predictedAway: Number(awayScore) });
   };
 
@@ -78,13 +87,13 @@ export const MisPronosticos: React.FC = () => {
                     <input type="number" min={0} value={homeScore} onChange={(e) => setHomeScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
                     <span className="text-white font-black">-</span>
                     <input type="number" min={0} value={awayScore} onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
-                    <button onClick={() => submitEdit(p.match.id)} className="ml-3 px-3 py-1.5 bg-amber-500 text-slate-900 rounded-xl font-bold text-xs">Guardar</button>
+                <button onClick={() => submitEdit(p.match.id, p.match.scheduledAt)} className="ml-3 px-3 py-1.5 bg-amber-500 text-slate-900 rounded-xl font-bold text-xs">Guardar</button>
                     <button onClick={cancelEdit} className="ml-2 px-3 py-1.5 bg-slate-700 text-white rounded-xl font-bold text-xs">Cancelar</button>
                   </>
                 ) : (
                   <>
                     <div className="text-white font-black text-lg">{p.predictedHome} - {p.predictedAway}</div>
-                    {p.match.status === 'SCHEDULED' ? (
+                {(p.match.status === 'SCHEDULED' && Date.now() < new Date(p.match.scheduledAt).getTime()) ? (
                       <button onClick={() => startEdit(p)} className="ml-4 px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-bold text-xs">Editar</button>
                     ) : (
                       <div className="text-xs text-slate-400 ml-4">No editable</div>

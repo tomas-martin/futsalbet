@@ -52,7 +52,7 @@ export const Perfil: React.FC = () => {
       {/* QUICK LINKS GRID */}
       <div className="grid md:grid-cols-3 gap-4">
         <Link
-          to="/mis-apuestas"
+          to="/mis-pronosticos"
           className="bg-slate-900 border border-slate-800 hover:border-purple-600/60 rounded-3xl p-6 transition space-y-3 shadow-lg group"
         >
           <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-400 flex items-center justify-center">
