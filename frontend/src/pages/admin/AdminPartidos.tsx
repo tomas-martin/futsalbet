@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
 import { Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -8,9 +8,44 @@ export const AdminPartidos: React.FC = () => {
   const [homeScore, setHomeScore] = useState<number>(0);
   const [awayScore, setAwayScore] = useState<number>(0);
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<any | null>(null);
+
+  const queryClient = useQueryClient();
+
   const { data: matchesData, refetch, isLoading } = useQuery({
     queryKey: ['admin-matches'],
     queryFn: () => apiClient.get('/matches?limit=50').then((res) => res.data),
+  });
+
+  const { data: tournaments } = useQuery({
+    queryKey: ['admin-tournaments'],
+    queryFn: () => apiClient.get('/tournaments').then((res) => res.data.data),
+  });
+
+  const { data: teams } = useQuery({
+    queryKey: ['admin-teams'],
+    queryFn: () => apiClient.get('/teams').then((res) => res.data.data),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload: any) => apiClient.post('/matches', payload),
+    onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
+      setShowCreate(false);
+      alert('Partido creado correctamente');
+    },
+    onError: (err: any) => alert(err?.response?.data?.error || 'Error al crear partido'),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: any) => apiClient.put(`/matches/${payload.id}`, payload.data),
+    onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
+      setEditingMatch(null);
+      alert('Partido actualizado correctamente');
+    },
+    onError: (err: any) => alert(err?.response?.data?.error || 'Error al actualizar partido'),
   });
 
   const handleSettleMatch = async (e: React.FormEvent) => {
@@ -25,7 +60,7 @@ export const AdminPartidos: React.FC = () => {
 
       alert('Partido finalizado y apuestas resueltas automáticamente');
       setSelectedMatch(null);
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
     } catch (err: any) {
       alert(err.response?.data?.error || 'Error al resolver el partido');
     }
@@ -33,11 +68,22 @@ export const AdminPartidos: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-black text-white flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-amber-400" /> Administración de Partidos y Resultados
-        </h2>
-        <p className="text-xs text-slate-400">Ingresa resultados para disparar la resolución automática de apuestas</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black text-white flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-amber-400" /> Administración de Partidos y Resultados
+          </h2>
+          <p className="text-xs text-slate-400">Ingresa resultados para disparar la resolución automática de apuestas</p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm"
+          >
+            Crear Partido
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -75,7 +121,7 @@ export const AdminPartidos: React.FC = () => {
                     <td className="py-3.5 px-4 text-center font-black text-sm text-white">
                       {m.status === 'FINISHED' || m.status === 'LIVE' ? `${m.homeScore} - ${m.awayScore}` : '-'}
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center space-x-2">
                       {m.status !== 'FINISHED' && (
                         <button
                           onClick={() => {
@@ -88,6 +134,13 @@ export const AdminPartidos: React.FC = () => {
                           Cargar Resultado
                         </button>
                       )}
+
+                      <button
+                        onClick={() => setEditingMatch(m)}
+                        className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -155,6 +208,122 @@ export const AdminPartidos: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* CREATE MATCH MODAL */}
+      {showCreate && (
+        <CreateOrEditMatchModal
+          tournaments={tournaments ?? []}
+          teams={teams ?? []}
+          onClose={() => setShowCreate(false)}
+          onSave={(payload) => createMutation.mutate(payload)}
+        />
+      )}
+
+      {/* EDIT MATCH MODAL */}
+      {editingMatch && (
+        <CreateOrEditMatchModal
+          tournaments={tournaments ?? []}
+          teams={teams ?? []}
+          initial={editingMatch}
+          onClose={() => setEditingMatch(null)}
+          onSave={(payload) => updateMutation.mutate({ id: editingMatch.id, data: payload })}
+        />
+      )}
+    </div>
+  );
+};
+
+
+
+// Reusable modal component for create/edit
+const CreateOrEditMatchModal: React.FC<{
+  tournaments: any[];
+  teams: any[];
+  initial?: any;
+  onClose: () => void;
+  onSave: (payload: any) => void;
+}> = ({ tournaments, teams, initial, onClose, onSave }) => {
+  const [tournamentId, setTournamentId] = useState(initial?.tournamentId ?? (tournaments[0]?.id ?? ''));
+  const [homeTeamId, setHomeTeamId] = useState(initial?.homeTeamId ?? (teams[0]?.id ?? ''));
+  const [awayTeamId, setAwayTeamId] = useState(initial?.awayTeamId ?? (teams[1]?.id ?? ''));
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    if (initial?.scheduledAt) return new Date(initial.scheduledAt).toISOString().slice(0, 16);
+    return new Date().toISOString().slice(0, 16);
+  });
+  const [venue, setVenue] = useState(initial?.venue ?? '');
+  const [round, setRound] = useState(initial?.round ?? '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (homeTeamId === awayTeamId) return alert('El equipo local y visitante no pueden ser el mismo');
+
+    const payload: any = {
+      tournamentId,
+      homeTeamId,
+      awayTeamId,
+      scheduledAt: new Date(scheduledAt).toISOString(),
+      venue,
+      round,
+    };
+
+    onSave(payload);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4">
+        <h3 className="font-black text-lg text-white">{initial ? 'Editar Partido' : 'Crear Partido'}</h3>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-xs text-slate-400 font-bold mb-1">Torneo</label>
+            <select value={tournamentId} onChange={(e) => setTournamentId(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800">
+              {tournaments.map((t: any) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-400 font-bold mb-1">Local</label>
+              <select value={homeTeamId} onChange={(e) => setHomeTeamId(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800">
+                {teams.map((team: any) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 font-bold mb-1">Visitante</label>
+              <select value={awayTeamId} onChange={(e) => setAwayTeamId(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800">
+                {teams.map((team: any) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 font-bold mb-1">Fecha y hora</label>
+            <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 font-bold mb-1">Sede (opcional)</label>
+            <input value={venue} onChange={(e) => setVenue(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+          </div>
+
+          <div>
+            <label className="block text-xs text-slate-400 font-bold mb-1">Ronda (opcional)</label>
+            <input value={round} onChange={(e) => setRound(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+          </div>
+
+          <div className="flex gap-2 mt-2">
+            <button type="button" onClick={onClose} className="w-1/2 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs">Cancelar</button>
+            <button type="submit" className="w-1/2 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs">{initial ? 'Guardar' : 'Crear'}</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
