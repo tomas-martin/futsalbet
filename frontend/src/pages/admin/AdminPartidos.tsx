@@ -86,6 +86,13 @@ export const AdminPartidos: React.FC = () => {
         </div>
       </div>
 
+      {/* RULES NOTICE */}
+      <div className="bg-purple-950/40 border border-purple-800/40 rounded-2xl p-3 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-purple-200">
+        <span>🔒 Los pronósticos se bloquean cuando pasa el horario de inicio del partido.</span>
+        <span>🎯 Prode: resultado exacto <strong>6 pts</strong> • ganador o empate <strong>3 pts</strong>.</span>
+        <span className="text-purple-300/70">Al cargar un resultado se liquidan apuestas y se puntúa el prode automáticamente.</span>
+      </div>
+
       {isLoading ? (
         <div className="py-12 text-center text-slate-500 font-bold text-sm">Cargando partidos...</div>
       ) : (

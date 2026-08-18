@@ -3,6 +3,13 @@ import prisma from '../config/database';
 import { BetSettlementService } from '../services/betSettlement.service';
 import { MatchStatus } from '@prisma/client';
 
+// Los partidos sincronizados desde Scorefy tienen externalId.
+// El cron de simulación SOLO debe operar sobre partidos de demo (sin externalId),
+// para no pisar ni liquidar datos reales del torneo.
+function isDemoMatch(match: { externalId: string | null }): boolean {
+  return !match.externalId;
+}
+
 export function startCronJobs() {
   console.log('⏰ Inicializando tareas programadas (Cron jobs)...');
 
@@ -14,6 +21,8 @@ export function startCronJobs() {
       });
 
       for (const match of liveMatches) {
+        if (!isDemoMatch(match)) continue;
+
         const currentMinute = (match.minute || 0) + 5;
 
         if (currentMinute >= 40) {
@@ -26,9 +35,13 @@ export function startCronJobs() {
             },
           });
 
-          // Resolver apuestas automáticamente
-          await BetSettlementService.settleMatch(match.id);
-          console.log(`⚽ Partido ${match.id} finalizado y apuestas resueltas por Cron`);
+          // Solo resolver si hay un resultado REAL cargado (no el 0-0 placeholder).
+          if (match.homeScore !== null && match.awayScore !== null) {
+            await BetSettlementService.settleMatch(match.id);
+            console.log(`⚽ Partido demo ${match.id} finalizado y apuestas resueltas por Cron`);
+          } else {
+            console.log(`⚽ Partido demo ${match.id} finalizado SIN resultado (no se liquidaron apuestas)`);
+          }
         } else {
           // Actualizar minuto en vivo
           await prisma.match.update({
@@ -54,6 +67,8 @@ export function startCronJobs() {
       });
 
       for (const match of upcomingToStart) {
+        if (!isDemoMatch(match)) continue;
+
         await prisma.match.update({
           where: { id: match.id },
           data: {
@@ -63,7 +78,14 @@ export function startCronJobs() {
             awayScore: 0,
           },
         });
-        console.log(`▶️ Partido ${match.id} pasó a LIVE por Cron`);
+
+        // Cerrar mercados al comenzar el partido (no se aceptan más apuestas).
+        await prisma.market.updateMany({
+          where: { matchId: match.id, status: { in: ['OPEN', 'SUSPENDED'] } },
+          data: { status: 'CLOSED' },
+        });
+
+        console.log(`▶️ Partido demo ${match.id} pasó a LIVE por Cron (mercados cerrados)`);
       }
     } catch (error) {
       console.error('Error en Cron de inicio de partidos:', error);

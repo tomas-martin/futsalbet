@@ -3,7 +3,7 @@ import prisma from '../config/database';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { updateMatchSchema, createMatchSchema, createMatchEventSchema } from '../validators/schemas';
 import { BetSettlementService } from '../services/betSettlement.service';
-import { MatchStatus } from '@prisma/client';
+import { MatchStatus, MarketStatus, MarketType } from '@prisma/client';
 
 export const getMatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -193,7 +193,29 @@ export const createMatch = async (req: AuthRequest, res: Response, next: NextFun
       },
     });
 
-    res.status(201).json({ message: 'Partido creado', match });
+    // Create default markets so the match is immediately bettable.
+    const market = await prisma.market.create({
+      data: { matchId: match.id, type: MarketType.MATCH_WINNER, name: 'Resultado Final', status: MarketStatus.OPEN },
+    });
+    await prisma.marketOption.createMany({
+      data: [
+        { marketId: market.id, label: 'Local', value: 'HOME', odds: 1.85, isActive: true },
+        { marketId: market.id, label: 'Empate', value: 'DRAW', odds: 3.2, isActive: true },
+        { marketId: market.id, label: 'Visitante', value: 'AWAY', odds: 2.25, isActive: true },
+      ],
+    });
+
+    const goalsMarket = await prisma.market.create({
+      data: { matchId: match.id, type: MarketType.OVER_UNDER, name: 'Total de Goles', status: MarketStatus.OPEN },
+    });
+    await prisma.marketOption.createMany({
+      data: [
+        { marketId: goalsMarket.id, label: 'Más de 4.5', value: 'OVER_4.5', odds: 1.7, isActive: true },
+        { marketId: goalsMarket.id, label: 'Menos de 4.5', value: 'UNDER_4.5', odds: 2.1, isActive: true },
+      ],
+    });
+
+    res.status(201).json({ message: 'Partido creado con mercados por defecto', match });
   } catch (error) {
     next(error);
   }
@@ -214,6 +236,25 @@ export const updateMatch = async (req: AuthRequest, res: Response, next: NextFun
         awayTeam: true,
       },
     });
+
+    // When a match goes LIVE or FINISHED, close open markets so no more bets are accepted.
+    if (match.status === MatchStatus.LIVE || match.status === MatchStatus.FINISHED) {
+      await prisma.market.updateMany({
+        where: { matchId: match.id, status: { in: ['OPEN', 'SUSPENDED'] } },
+        data: { status: 'CLOSED' },
+      });
+    }
+
+    // When a match is cancelled or postponed, void and refund all pending bets.
+    if (match.status === MatchStatus.CANCELLED || match.status === MatchStatus.POSTPONED) {
+      const refunded = await BetSettlementService.voidBetsForMatch(match.id, match.status === MatchStatus.CANCELLED ? 'Partido cancelado' : 'Partido postpuesto');
+      res.json({
+        message: `Partido actualizado y ${refunded} apuesta(s) anulada(s)`,
+        match,
+        refundedBets: refunded,
+      });
+      return;
+    }
 
     res.json({ message: 'Partido actualizado', match });
   } catch (error) {
@@ -260,7 +301,7 @@ export const settleMatch = async (req: AuthRequest, res: Response, next: NextFun
     const result = await BetSettlementService.settleMatch(match.id);
 
     res.json({
-      message: 'Partido finalizado y apuestas resueltas',
+      message: 'Partido finalizado, apuestas resueltas y prode puntuado',
       match,
       settlement: result,
     });

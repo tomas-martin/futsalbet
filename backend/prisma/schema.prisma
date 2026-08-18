@@ -277,19 +277,23 @@ model Match {
 }
 
 model Prediction {
-  id             String   @id @default(cuid())
+  id             String          @id @default(cuid())
   userId         String
   matchId        String
   predictedHome  Int
   predictedAway  Int
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  result         SelectionResult @default(PENDING)
+  pointsEarned   Int             @default(0)
+  settledAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match          Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match          Match           @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
   @@unique([userId, matchId])
   @@index([matchId])
+  @@index([result])
   @@map("predictions")
 }
 

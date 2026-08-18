@@ -523,6 +523,11 @@ export async function syncFromScorefy(): Promise<{
       const result = await upsertMatch(parsed, tournament.id, category.id, teamCache);
       if (result.created) stats.matchesCreated++;
       if (result.changed) stats.fixturesUpdated++;
+
+      if (parsed.status === MatchStatus.POSTPONED || parsed.status === MatchStatus.CANCELLED) {
+        const refunded = await BetSettlementService.voidBetsForMatch(result.matchId, parsed.status === MatchStatus.CANCELLED ? 'Partido cancelado' : 'Partido postpuesto');
+        if (refunded > 0) stats.betsSettled += refunded;
+      }
     }
 
     for (const parsed of resultMatches) {
@@ -534,6 +539,9 @@ export async function syncFromScorefy(): Promise<{
       if (match?.status === MatchStatus.FINISHED && match.homeScore !== null && match.awayScore !== null) {
         const settlement = await BetSettlementService.settleMatch(match.id);
         stats.betsSettled += settlement.settled;
+      } else if (match && (match.status === MatchStatus.POSTPONED || match.status === MatchStatus.CANCELLED)) {
+        const refunded = await BetSettlementService.voidBetsForMatch(match.id, match.status === MatchStatus.CANCELLED ? 'Partido cancelado' : 'Partido postpuesto');
+        if (refunded > 0) stats.betsSettled += refunded;
       }
     }
 

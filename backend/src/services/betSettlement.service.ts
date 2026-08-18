@@ -1,5 +1,8 @@
 import prisma from '../config/database';
-import { BetStatus, MarketStatus, SelectionResult, TransactionType, MarketType } from '@prisma/client';
+import { BetStatus, MarketStatus, MatchStatus, SelectionResult, TransactionType, MarketType } from '@prisma/client';
+
+export const PREDICTION_EXACT_POINTS = 6;
+export const PREDICTION_WINNER_POINTS = 3;
 
 interface SettlementResult {
   settled: number;
@@ -7,11 +10,19 @@ interface SettlementResult {
   lost: number;
   void: number;
   totalPaidOut: number;
+  prode: PredictionSettlementResult;
+}
+
+interface PredictionSettlementResult {
+  settled: number;
+  won: number;
+  exact: number;
+  totalPoints: number;
 }
 
 export class BetSettlementService {
   /**
-   * Settle all markets and bets for a finished match
+   * Settle all markets and bets for a finished match, and score the prode predictions.
    */
   static async settleMatch(matchId: string): Promise<SettlementResult> {
     const match = await prisma.match.findUnique({
@@ -33,19 +44,14 @@ export class BetSettlementService {
     const awayScore = match.awayScore;
     const totalGoals = homeScore + awayScore;
 
-    const result: SettlementResult = { settled: 0, won: 0, lost: 0, void: 0, totalPaidOut: 0 };
+    const result: SettlementResult = { settled: 0, won: 0, lost: 0, void: 0, totalPaidOut: 0, prode: { settled: 0, won: 0, exact: 0, totalPoints: 0 } };
 
     for (const market of match.markets) {
       if (market.status === MarketStatus.SETTLED) continue;
 
-      // Determine winning option values for each market type
-      const winningValues = this.getWinningValues(market.type, homeScore, awayScore, totalGoals);
-
-      // Update market options results
+      // Evaluate each option individually (supports OVER/UNDER lines correctly)
       for (const option of market.options) {
-        const optionResult = winningValues.includes(option.value)
-          ? SelectionResult.WON
-          : SelectionResult.LOST;
+        const optionResult = this.evaluateOption(market.type, option.value, homeScore, awayScore, totalGoals);
 
         await prisma.marketOption.update({
           where: { id: option.id },
@@ -146,50 +152,175 @@ export class BetSettlementService {
       }
     }
 
+    // Score prode predictions for this finished match
+    result.prode = await this.settlePredictions(matchId);
+
     return result;
   }
 
-  private static getWinningValues(
+  /**
+   * Score all pending prode predictions for a finished match.
+   * Exact score = 6 points, correct winner/draw = 3 points, otherwise 0.
+   */
+  static async settlePredictions(matchId: string): Promise<PredictionSettlementResult> {
+    const match = await prisma.match.findUnique({ where: { id: matchId } });
+    if (
+      !match ||
+      match.status !== MatchStatus.FINISHED ||
+      match.homeScore === null ||
+      match.awayScore === null
+    ) {
+      return { settled: 0, won: 0, exact: 0, totalPoints: 0 };
+    }
+
+    const home = match.homeScore;
+    const away = match.awayScore;
+
+    const predictions = await prisma.prediction.findMany({
+      where: { matchId, result: SelectionResult.PENDING },
+      include: { user: { include: { wallet: true } } },
+    });
+
+    const outcome = {
+      settled: 0,
+      won: 0,
+      exact: 0,
+      totalPoints: 0,
+    };
+
+    for (const prediction of predictions) {
+      const isExact = prediction.predictedHome === home && prediction.predictedAway === away;
+      const actualSign = Math.sign(home - away);
+      const predictedSign = Math.sign(prediction.predictedHome - prediction.predictedAway);
+      const isWinner = actualSign === predictedSign;
+
+      const points = isExact
+        ? PREDICTION_EXACT_POINTS
+        : isWinner
+          ? PREDICTION_WINNER_POINTS
+          : 0;
+
+      if (points > 0) {
+        outcome.won++;
+        if (isExact) outcome.exact++;
+      }
+
+      await prisma.prediction.update({
+        where: { id: prediction.id },
+        data: {
+          result: points > 0 ? SelectionResult.WON : SelectionResult.LOST,
+          pointsEarned: points,
+          settledAt: new Date(),
+        },
+      });
+
+      outcome.settled++;
+      outcome.totalPoints += points;
+
+      if (prediction.user.wallet) {
+        await prisma.notification.create({
+          data: {
+            userId: prediction.userId,
+            title: points > 0 ? '🎯 ¡Acierto en el Prode!' : 'Prode — Pronóstico resuelto',
+            message:
+              points > 0
+                ? `Acertaste ${isExact ? 'el resultado EXACTO' : 'el ganador o el empate'} de ${prediction.predictedHome}-${prediction.predictedAway}. Sumaste ${points} puntos al prode.`
+                : `Tu pronóstico ${prediction.predictedHome}-${prediction.predictedAway} no acertó (resultado final ${home}-${away}).`,
+            type: points > 0 ? 'BET_WON' : 'BET_LOST',
+            data: { matchId, predictionId: prediction.id, pointsEarned: points },
+          },
+        });
+      }
+    }
+
+    return outcome;
+  }
+
+  /**
+   * Void and refund all pending bets that reference a match (cancelled/postponed).
+   * Returns the number of refunded bets.
+   */
+  static async voidBetsForMatch(matchId: string, reason: string): Promise<number> {
+    const bets = await prisma.bet.findMany({
+      where: {
+        status: BetStatus.PENDING,
+        selections: {
+          some: {
+            marketOption: {
+              market: { matchId },
+            },
+          },
+        },
+      },
+      include: { user: { include: { wallet: true } } },
+    });
+
+    let refunded = 0;
+    for (const bet of bets) {
+      try {
+        await this.refundBet(bet.id, reason);
+        refunded++;
+      } catch (error) {
+        console.error(`No se pudo anular la apuesta ${bet.id}:`, error);
+      }
+    }
+    return refunded;
+  }
+
+  private static evaluateOption(
     marketType: MarketType,
+    optionValue: string,
     homeScore: number,
     awayScore: number,
     totalGoals: number
-  ): string[] {
+  ): SelectionResult {
     switch (marketType) {
       case MarketType.MATCH_WINNER:
-        if (homeScore > awayScore) return ['HOME'];
-        if (awayScore > homeScore) return ['AWAY'];
-        return ['DRAW'];
+        if (homeScore > awayScore) return optionValue === 'HOME' ? SelectionResult.WON : SelectionResult.LOST;
+        if (awayScore > homeScore) return optionValue === 'AWAY' ? SelectionResult.WON : SelectionResult.LOST;
+        return optionValue === 'DRAW' ? SelectionResult.WON : SelectionResult.LOST;
 
       case MarketType.DOUBLE_CHANCE:
-        if (homeScore > awayScore) return ['HOME_DRAW', 'HOME_AWAY'];
-        if (awayScore > homeScore) return ['HOME_AWAY', 'DRAW_AWAY'];
-        return ['HOME_DRAW', 'DRAW_AWAY'];
+        if (homeScore > awayScore) {
+          return optionValue === 'HOME_DRAW' || optionValue === 'HOME_AWAY' ? SelectionResult.WON : SelectionResult.LOST;
+        }
+        if (awayScore > homeScore) {
+          return optionValue === 'HOME_AWAY' || optionValue === 'DRAW_AWAY' ? SelectionResult.WON : SelectionResult.LOST;
+        }
+        return optionValue === 'HOME_DRAW' || optionValue === 'DRAW_AWAY' ? SelectionResult.WON : SelectionResult.LOST;
 
-      case MarketType.OVER_UNDER:
-        const winning: string[] = [];
-        if (totalGoals > 3.5) winning.push('OVER_3.5');
-        else winning.push('UNDER_3.5');
-        if (totalGoals > 4.5) winning.push('OVER_4.5');
-        else winning.push('UNDER_4.5');
-        if (totalGoals > 2.5) winning.push('OVER_2.5');
-        else winning.push('UNDER_2.5');
-        return winning;
+      case MarketType.OVER_UNDER: {
+        const line = optionValue.includes('_')
+          ? parseFloat(optionValue.split('_')[1])
+          : parseFloat(optionValue.replace(/^\D+/, ''));
+        const normalizedLine = Number.isFinite(line) && line > 0 ? line : 4.5;
+        if (/^OVER/i.test(optionValue)) {
+          return totalGoals > normalizedLine ? SelectionResult.WON : SelectionResult.LOST;
+        }
+        if (/^UNDER/i.test(optionValue)) {
+          return totalGoals < normalizedLine ? SelectionResult.WON : SelectionResult.LOST;
+        }
+        return SelectionResult.LOST;
+      }
 
       case MarketType.BOTH_TEAMS_SCORE:
-        return homeScore > 0 && awayScore > 0 ? ['YES'] : ['NO'];
+        return homeScore > 0 && awayScore > 0
+          ? optionValue === 'YES' ? SelectionResult.WON : SelectionResult.LOST
+          : optionValue === 'NO' ? SelectionResult.WON : SelectionResult.LOST;
 
       case MarketType.EXACT_SCORE:
-        return [`${homeScore}-${awayScore}`];
+        return optionValue === `${homeScore}-${awayScore}` ? SelectionResult.WON : SelectionResult.LOST;
 
       case MarketType.FIRST_TEAM_SCORE:
-        // We'd need event data; fallback to match winner as proxy
-        if (homeScore > 0) return ['HOME'];
-        if (awayScore > 0) return ['AWAY'];
-        return ['NONE'];
+        if (homeScore > 0 && awayScore > 0) {
+          return optionValue === 'BOTH' ? SelectionResult.WON : SelectionResult.LOST;
+        }
+        if (homeScore > 0) return optionValue === 'HOME' ? SelectionResult.WON : SelectionResult.LOST;
+        if (awayScore > 0) return optionValue === 'AWAY' ? SelectionResult.WON : SelectionResult.LOST;
+        return optionValue === 'NONE' ? SelectionResult.WON : SelectionResult.LOST;
 
       default:
-        return [];
+        return SelectionResult.LOST;
     }
   }
 

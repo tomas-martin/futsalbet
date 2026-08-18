@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export const AdminPredictions: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -10,6 +13,12 @@ export const AdminPredictions: React.FC = () => {
     queryKey: ['admin-matches-list'],
     queryFn: () => apiClient.get('/matches?limit=200').then((res) => res.data.data),
   });
+
+  // if a ?match=... param is provided, preselect it
+  useEffect(() => {
+    const m = searchParams.get('match');
+    if (m) setSelectedMatch(m);
+  }, [searchParams]);
 
   const { data: preds, isLoading } = useQuery({
     queryKey: ['admin-predictions', selectedMatch],
@@ -24,6 +33,15 @@ export const AdminPredictions: React.FC = () => {
     },
     onError: (err: any) => alert(err?.response?.data?.error || 'Error al eliminar pronóstico'),
   });
+
+  useEffect(() => {
+    // if the selectedMatch is cleared, remove param from URL
+    if (!selectedMatch) {
+      const params = Object.fromEntries([...searchParams.entries()].filter(([k]) => k !== 'match'));
+      const qs = new URLSearchParams(params).toString();
+      navigate(`/admin/predictions${qs ? `?${qs}` : ''}`, { replace: true });
+    }
+  }, [selectedMatch]);
 
   return (
     <div className="space-y-6">
@@ -56,6 +74,24 @@ export const AdminPredictions: React.FC = () => {
                 <div className="font-bold text-white">{p.user.displayName} <span className="text-slate-400 text-xs">@{p.user.username}</span></div>
                 <div className="text-xs text-slate-400">{p.user.email}</div>
                 <div className="text-sm text-white font-black mt-2">{p.predictedHome} - {p.predictedAway}</div>
+                <div className="flex items-center gap-2 mt-1.5">
+                  {p.match?.status === 'FINISHED' && (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                      Final: {p.match.homeScore} - {p.match.awayScore}
+                    </span>
+                  )}
+                  {p.result === 'PENDING' ? (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">PENDIENTE</span>
+                  ) : p.result === 'WON' ? (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                      p.pointsEarned === 6 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-green-500/20 text-green-400 border-green-500/40'
+                    }`}>
+                      {p.pointsEarned === 6 ? '🎯 EXACTO' : '✅ ACERTADO'} +{p.pointsEarned} pts
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400">✗ PERDIDO</span>
+                  )}
+                </div>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <div className="text-xs text-slate-400">Enviado: {new Date(p.createdAt).toLocaleString('es-AR')}</div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Calendar, Radio, Trophy, Ticket, User } from 'lucide-react';
+import { Home, Calendar, Radio, Trophy, Ticket, User, Target } from 'lucide-react';
 import { useBetSlip } from '../context/BetSlipContext';
 
 export const BottomNav: React.FC = () => {
@@ -31,6 +31,18 @@ export const BottomNav: React.FC = () => {
         >
           <Calendar className="w-5 h-5" />
           <span>Partidos</span>
+        </NavLink>
+
+        <NavLink
+          to="/prode"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+              isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
+            }`
+          }
+        >
+          <Target className="w-5 h-5" />
+          <span>Prode</span>
         </NavLink>
 
         <NavLink

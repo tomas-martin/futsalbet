@@ -67,6 +67,13 @@ export const MisPronosticos: React.FC = () => {
         <p className="text-xs text-slate-400">Tus predicciones enviadas para los partidos del torneo.</p>
       </div>
 
+      {/* SCORING RULES */}
+      <div className="bg-purple-950/40 border border-purple-800/40 rounded-2xl p-3 flex flex-wrap gap-3 text-[11px] text-purple-200">
+        <span>🎯 Resultado exacto: <strong>6 pts</strong></span>
+        <span>🏆 Ganador o empate correcto: <strong>3 pts</strong></span>
+        <span className="text-purple-300/70">Los puntos se suman cuando el partido finaliza.</span>
+      </div>
+
       {isLoading ? (
         <div className="py-12 text-center text-slate-500 font-bold">Cargando pronósticos...</div>
       ) : !data || data.length === 0 ? (
@@ -78,7 +85,19 @@ export const MisPronosticos: React.FC = () => {
               <div>
                 <div className="font-bold text-white">{p.match.homeTeam?.name} <span className="text-slate-400">vs</span> {p.match.awayTeam?.name}</div>
                 <div className="text-xs text-slate-400">{new Date(p.match.scheduledAt).toLocaleString('es-AR')}</div>
-                <div className="text-xs text-slate-400 mt-1">Estado: <strong className="text-white">{p.match.status}</strong></div>
+                <div className="flex items-center gap-2 mt-2">
+                  {p.result === 'PENDING' ? (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">PENDIENTE</span>
+                  ) : p.result === 'WON' ? (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                      p.pointsEarned === 6 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-green-500/20 text-green-400 border-green-500/40'
+                    }`}>
+                      {p.pointsEarned === 6 ? '🎯 EXACTO' : '✅ ACERTADO'} +{p.pointsEarned} pts
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400">✗ PERDIDO</span>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
