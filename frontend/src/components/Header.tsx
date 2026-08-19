@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Coins, Bell, User as UserIcon, Shield, LogOut, Ticket } from 'lucide-react';
-import { useBetSlip } from '../context/BetSlipContext';
+import { Bell, User as UserIcon, Shield, LogOut, Trophy } from 'lucide-react';
 import { apiClient } from '../api/client';
 
 export const Header: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
-  const { items, toggleOpen } = useBetSlip();
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -42,23 +40,6 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <>
-              {/* Virtual Wallet points pill */}
-              <Link
-                to="/mis-puntos"
-                className="bg-purple-950/60 border border-purple-800/60 hover:border-purple-600 px-3 py-1.5 rounded-full flex items-center gap-2 transition group"
-                title="Tus Puntos Virtuales"
-              >
-                <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                  <Coins className="w-3.5 h-3.5 text-yellow-400" />
-                </div>
-                <div className="text-left">
-                  <span className="block text-[9px] uppercase tracking-wider text-purple-300 font-medium">Puntos</span>
-                  <span className="font-extrabold text-sm text-yellow-400 leading-none">
-                    {user?.balance?.toLocaleString('es-AR') ?? 0}
-                  </span>
-                </div>
-              </Link>
-
               {/* Admin Button if Admin */}
               {isAdmin && (
                 <Link
@@ -66,9 +47,18 @@ export const Header: React.FC = () => {
                   className="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition"
                 >
                   <Shield className="w-4 h-4" />
-                  <span className="hidden md:inline">Admin</span>
+                  <span className="hidden md:inline">Panel Admin</span>
                 </Link>
               )}
+
+              {/* Leaderboard */}
+              <Link
+                to="/leaderboard"
+                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition"
+                title="Tabla de Posiciones Prode"
+              >
+                <Trophy className="w-5 h-5 text-yellow-400" />
+              </Link>
 
               {/* Notifications */}
               <Link
@@ -81,20 +71,6 @@ export const Header: React.FC = () => {
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse"></span>
                 )}
               </Link>
-
-              {/* Bet Slip Trigger */}
-              <button
-                onClick={toggleOpen}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg relative transition"
-                title="Boleta de Pronósticos"
-              >
-                <Ticket className="w-5 h-5 text-purple-400" />
-                {items.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
-                    {items.length}
-                  </span>
-                )}
-              </button>
 
               {/* User Dropdown */}
               <div className="relative">
@@ -121,19 +97,28 @@ export const Header: React.FC = () => {
                       <UserIcon className="w-4 h-4 text-slate-400" /> Perfil
                     </Link>
                     <Link
-                      to="/mis-apuestas"
+                      to="/mis-pronosticos"
                       onClick={() => setMenuOpen(false)}
                       className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-2"
                     >
-                      <Ticket className="w-4 h-4 text-slate-400" /> Mis Apuestas
+                      <Trophy className="w-4 h-4 text-slate-400" /> Mis Pronósticos
                     </Link>
                     <Link
-                      to="/mis-puntos"
+                      to="/leaderboard"
                       onClick={() => setMenuOpen(false)}
                       className="px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-2"
                     >
-                      <Coins className="w-4 h-4 text-yellow-400" /> Puntos Virtuales
+                      <Trophy className="w-4 h-4 text-yellow-400" /> Tabla del Prode
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin/dashboard"
+                        onClick={() => setMenuOpen(false)}
+                        className="px-4 py-2 text-xs font-semibold text-amber-400 hover:bg-slate-800 flex items-center gap-2"
+                      >
+                        <Shield className="w-4 h-4" /> Panel Admin
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         setMenuOpen(false);

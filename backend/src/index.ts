@@ -10,13 +10,10 @@ import { authRouter } from './routes/auth.routes';
 import { tournamentRouter } from './routes/tournament.routes';
 import { teamRouter } from './routes/team.routes';
 import { matchRouter } from './routes/match.routes';
-import { betRouter } from './routes/bet.routes';
-import { walletRouter } from './routes/wallet.routes';
 import { rankingRouter } from './routes/ranking.routes';
 import { favoriteRouter } from './routes/favorite.routes';
 import { notificationRouter } from './routes/notification.routes';
 import { adminRouter } from './routes/admin.routes';
-import { marketRouter } from './routes/market.routes';
 import { syncRouter } from './routes/sync.routes';
 import { predictionRouter } from './routes/prediction.routes';
 import { errorHandler } from './middlewares/error.middleware';
@@ -97,7 +94,7 @@ app.get('/api/health', async (_req, res) => {
     timestamp: new Date().toISOString(),
     db: dbHost,
     dbStatus,
-    note: 'Plataforma recreativa — Solo puntos virtuales, sin dinero real',
+    note: 'Prode de futsal — Pronósticos recreativos sin dinero real',
   });
 });
 
@@ -108,9 +105,6 @@ app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/tournaments', tournamentRouter);
 app.use('/api/teams', teamRouter);
 app.use('/api/matches', matchRouter);
-app.use('/api/markets', marketRouter);
-app.use('/api/bets', betRouter);
-app.use('/api/wallet', walletRouter);
 app.use('/api/ranking', rankingRouter);
 app.use('/api/favorites', favoriteRouter);
 app.use('/api/notifications', notificationRouter);
@@ -132,7 +126,7 @@ app.use(errorHandler);
 if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`🚀 FutsalBet API corriendo en http://localhost:${PORT}`);
-    console.log(`🎮 Plataforma recreativa — Solo puntos virtuales`);
+    console.log(`🎯 Prode de futsal — Pronósticos recreativos`);
   });
 
   startCronJobs();

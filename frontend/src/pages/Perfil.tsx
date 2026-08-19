@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Coins, Ticket, Award, Shield, User as UserIcon, LogOut } from 'lucide-react';
+import { Trophy, Award, Shield, User as UserIcon, LogOut, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Perfil: React.FC = () => {
@@ -31,46 +31,44 @@ export const Perfil: React.FC = () => {
         </button>
       </div>
 
-      {/* VIRTUAL POINTS SUMMARY CARD */}
+      {/* PRODE SUMMARY CARD */}
       <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 border border-purple-800/40 rounded-3xl p-6 md:p-8 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase font-extrabold tracking-wider text-purple-300 flex items-center gap-1.5">
-            <Coins className="w-4 h-4 text-yellow-400" /> Billetera de Puntos Virtuales
+            <Target className="w-4 h-4 text-yellow-400" /> Prode FSP 2026
           </span>
-          <Link to="/mis-puntos" className="text-xs font-bold text-yellow-400 hover:underline">
-            Ver Movimientos →
+          <Link to="/leaderboard" className="text-xs font-bold text-purple-300 hover:underline">
+            Ver Tabla →
           </Link>
         </div>
-        <div className="text-4xl font-black text-yellow-400">
-          {user.balance?.toLocaleString('es-AR')} <span className="text-sm font-bold text-slate-400">PUNTOS</span>
-        </div>
         <p className="text-xs text-slate-400">
-          * Recordatorio: Los puntos son totalmente virtuales para pronósticos recreativos sin dinero real.
+          Acertá resultados exactos (<strong className="text-white">6 pts</strong>) o ganador/empate (<strong className="text-white">3 pts</strong>)
+          en los partidos de la FEFUSA. Tus pronósticos se bloquean cuando arranca el partido.
         </p>
       </div>
 
       {/* QUICK LINKS GRID */}
       <div className="grid md:grid-cols-3 gap-4">
         <Link
-          to="/mis-pronosticos"
+          to="/prode"
           className="bg-slate-900 border border-slate-800 hover:border-purple-600/60 rounded-3xl p-6 transition space-y-3 shadow-lg group"
         >
           <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-400 flex items-center justify-center">
-            <Ticket className="w-5 h-5" />
+            <Target className="w-5 h-5" />
           </div>
-          <h3 className="font-extrabold text-base text-white group-hover:text-purple-300">Mis Pronósticos</h3>
-          <p className="text-xs text-slate-400">Revisa tu historial de apuestas simples y combinadas</p>
+          <h3 className="font-extrabold text-base text-white group-hover:text-purple-300">Jugar al Prode</h3>
+          <p className="text-xs text-slate-400">Cargá tus pronósticos de los próximos partidos</p>
         </Link>
 
         <Link
-          to="/mis-puntos"
+          to="/mis-pronosticos"
           className="bg-slate-900 border border-slate-800 hover:border-purple-600/60 rounded-3xl p-6 transition space-y-3 shadow-lg group"
         >
           <div className="w-10 h-10 rounded-2xl bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 flex items-center justify-center">
-            <Coins className="w-5 h-5" />
+            <Trophy className="w-5 h-5" />
           </div>
-          <h3 className="font-extrabold text-base text-white group-hover:text-purple-300">Mis Puntos</h3>
-          <p className="text-xs text-slate-400">Trazabilidad de bonos, premios y apuestas</p>
+          <h3 className="font-extrabold text-base text-white group-hover:text-purple-300">Mis Pronósticos</h3>
+          <p className="text-xs text-slate-400">Historial de tus pronósticos y puntos ganados</p>
         </Link>
 
         <Link
@@ -84,6 +82,21 @@ export const Perfil: React.FC = () => {
           <p className="text-xs text-slate-400">Acceso rápido a tus equipos y torneos favoritos</p>
         </Link>
       </div>
+
+      {user.role === 'ADMIN' && (
+        <Link
+          to="/admin/dashboard"
+          className="flex items-center gap-3 bg-slate-900 border border-amber-500/30 hover:border-amber-500/60 rounded-3xl p-5 transition shadow-lg group"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+            <Shield className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-base text-amber-300 group-hover:text-amber-200">Panel Administrador</h3>
+            <p className="text-xs text-slate-400">Cargar partidos, resultados y administrar usuarios</p>
+          </div>
+        </Link>
+      )}
     </div>
   );
 };

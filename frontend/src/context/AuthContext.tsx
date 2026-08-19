@@ -9,7 +9,6 @@ export interface User {
   displayName: string;
   avatarUrl?: string;
   role: 'USER' | 'ADMIN';
-  balance: number;
 }
 
 interface AuthContextType {
@@ -19,9 +18,10 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (token: string, user: User) => void;
   logout: () => Promise<void>;
-  updateUserBalance: (newBalance: number) => void;
   refreshUser: () => Promise<void>;
-  signInWithEmail?: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{ requiresEmailConfirmation: boolean }>;
+  signIn: (email: string, password: string) => Promise<void>;
+  exchangeSupabaseSession: (accessToken: string) => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,14 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newUser);
   };
 
-  // Keep the old API-based login signature for existing pages/components
   const login = (newToken: string, newUser: User) => {
     persistUser(newToken, newUser);
   };
 
   const logout = async () => {
     try {
-      // sign out from Supabase if used
       await supabase?.auth.signOut();
     } catch (e) {
       // ignore
@@ -60,41 +58,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     persistUser(null, null);
   };
 
-  const updateUserBalance = (newBalance: number) => {
-    if (user) {
-      const updated = { ...user, balance: newBalance };
-      persistUser(token, updated);
+  // Envía el access_token de la sesión de Supabase al backend para obtener
+  // el JWT de la app y los datos del usuario local (incluido el rol admin).
+  const exchangeSupabaseSession = async (accessToken: string): Promise<User> => {
+    const res = await apiClient.post('/auth/supabase', { accessToken });
+    const mapped: User = {
+      id: res.data.user.id,
+      email: res.data.user.email,
+      username: res.data.user.username,
+      displayName: res.data.user.displayName,
+      avatarUrl: res.data.user.avatarUrl,
+      role: res.data.user.role,
+    };
+    persistUser(res.data.token, mapped);
+    return mapped;
+  };
+
+  const signUp = async (email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase no está configurado en el frontend');
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+
+    if (data.session) {
+      await exchangeSupabaseSession(data.session.access_token);
+      return { requiresEmailConfirmation: false };
     }
+    return { requiresEmailConfirmation: true };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    if (!supabase) throw new Error('Supabase no está configurado en el frontend');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data.session) throw new Error('No se obtuvo una sesión de Supabase');
+    await exchangeSupabaseSession(data.session.access_token);
   };
 
   const refreshUser = async () => {
-    // Try Supabase first
-    if (supabase) {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (!error && data.user) {
-          const u = data.user;
-          const isAdmin = (u.user_metadata as any)?.is_admin === true;
-          const mapped: User = {
-            id: u.id,
-            email: u.email ?? '',
-            username: (u.user_metadata as any)?.username ?? u.email ?? '',
-            displayName: (u.user_metadata as any)?.displayName ?? (u.user_metadata as any)?.name ?? '',
-            avatarUrl: (u.user_metadata as any)?.avatarUrl ?? undefined,
-            role: isAdmin ? 'ADMIN' : 'USER',
-            balance: Number((u.user_metadata as any)?.balance ?? 0),
-          };
-          const session = (await supabase.auth.getSession()).data.session;
-          const accessToken = session?.access_token ?? null;
-          persistUser(accessToken, mapped);
-          return;
-        }
-      } catch (err) {
-        // fallthrough to backend
-      }
-    }
-
-    // Fallback: try backend auth/me if token present
     if (!token) return;
     try {
       const res = await apiClient.get('/auth/me');
@@ -106,59 +106,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         displayName: data.displayName,
         avatarUrl: data.avatarUrl,
         role: data.role,
-        balance: Number(data.wallet?.balance ?? 0),
       };
       persistUser(token, updatedUser);
     } catch {
-      // invalid token
+      // invalid token — fallback a sesión de Supabase si existe
+      try {
+        if (supabase) {
+          const { data: sessionData } = await supabase.auth.getSession();
+          if (sessionData.session) {
+            await exchangeSupabaseSession(sessionData.session.access_token);
+          }
+        }
+      } catch {
+        // ignore
+      }
     }
-  };
-
-  // helper for signing in via Supabase (email/password)
-  const signInWithEmail = async (email: string, password: string) => {
-    if (!supabase) {
-      throw new Error('Supabase no configurado');
-    }
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    const session = data.session;
-    const u = data.user;
-    const isAdmin = (u?.user_metadata as any)?.is_admin === true;
-    const mapped: User = {
-      id: u!.id,
-      email: u!.email ?? '',
-      username: (u!.user_metadata as any)?.username ?? u!.email ?? '',
-      displayName: (u!.user_metadata as any)?.displayName ?? (u!.user_metadata as any)?.name ?? '',
-      avatarUrl: (u!.user_metadata as any)?.avatarUrl ?? undefined,
-      role: isAdmin ? 'ADMIN' : 'USER',
-      balance: Number((u!.user_metadata as any)?.balance ?? 0),
-    };
-    const accessToken = session?.access_token ?? null;
-    persistUser(accessToken, mapped);
   };
 
   useEffect(() => {
-    // on mount try to restore session from Supabase or backend
     refreshUser();
 
     const sub = supabase?.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // set user from session
-        const u = session.user;
-        const isAdmin = (u.user_metadata as any)?.is_admin === true;
-        const mapped: User = {
-          id: u.id,
-          email: u.email ?? '',
-          username: (u.user_metadata as any)?.username ?? u.email ?? '',
-          displayName: (u.user_metadata as any)?.displayName ?? (u.user_metadata as any)?.name ?? '',
-          avatarUrl: (u.user_metadata as any)?.avatarUrl ?? undefined,
-          role: isAdmin ? 'ADMIN' : 'USER',
-          balance: Number((u.user_metadata as any)?.balance ?? 0),
-        };
-        const accessToken = session.access_token ?? null;
-        persistUser(accessToken, mapped);
+      if (event === 'SIGNED_IN' && session?.access_token) {
+        exchangeSupabaseSession(session.access_token).catch(() => {});
       }
-
       if (event === 'SIGNED_OUT') {
         persistUser(null, null);
       }
@@ -185,9 +156,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === 'ADMIN',
         login,
         logout,
-        updateUserBalance,
         refreshUser,
-        signInWithEmail,
+        signUp,
+        signIn,
+        exchangeSupabaseSession,
       }}
     >
       {children}

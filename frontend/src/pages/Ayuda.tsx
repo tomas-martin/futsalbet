@@ -1,31 +1,36 @@
 import React from 'react';
-import { HelpCircle, ShieldAlert, Coins, Ticket, Trophy, CheckCircle2 } from 'lucide-react';
+import { HelpCircle, ShieldCheck, Target, Trophy, Lock, CheckCircle2 } from 'lucide-react';
 
 export const Ayuda: React.FC = () => {
   const faqs = [
     {
+      q: '¿Qué es el Prode de FutsalBet?',
+      a: 'Es un juego de pronósticos 100% recreativo. Pronosticás el resultado (Local-Visitante) de cada partido del torneo FEFUSA Mendoza antes de que arranque, y sumás puntos por aciertos.',
+      icon: Target,
+    },
+    {
       q: '¿FutsalBet utiliza dinero real?',
-      a: 'NO. FutsalBet es una plataforma 100% recreativa orientada al futsal de Mendoza. Funciona exclusivamente con Puntos Virtuales ficticios. No hay Mercado Pago, tarjetas de crédito, depósitos ni retiros.',
-      icon: ShieldAlert,
+      a: 'NO. FutsalBet es una plataforma recreativa del futsal de Mendoza. No hay dinero real, depósitos ni retiros: solo se juega por puntos y prestigio en la tabla del prode.',
+      icon: ShieldCheck,
     },
     {
-      q: '¿Cómo obtengo Puntos Virtuales?',
-      a: 'Cada usuario nuevo recibe automáticamente 1000 Puntos Virtuales al registrarse como bono de bienvenida. También ganas puntos al acertar tus pronósticos deportivos.',
-      icon: Coins,
+      q: '¿Cómo se puntúa?',
+      a: 'Resultado exacto: 6 puntos. Acertar el ganador o el empate sin el marcador exacto: 3 puntos. Pronóstico fallado: 0 puntos.',
+      icon: Trophy,
     },
     {
-      q: '¿Cómo funcionan los pronósticos combinados?',
-      a: 'Puedes seleccionar 2 o más opciones de partidos diferentes. Las cuotas virtuales se multiplicarán automáticamente (ej: 1.80 × 1.50 = 2.70). Si aciertas todas las selecciones, ganas la combinación.',
-      icon: Ticket,
+      q: '¿Hasta cuándo puedo cargar o editar mi pronóstico?',
+      a: 'Podés cargar y modificar tu pronóstico hasta que comience el partido. Cuando pasa el horario de inicio, el pronóstico queda bloqueado y no se puede editar.',
+      icon: Lock,
     },
     {
-      q: '¿Cómo se resuelven las apuestas cuando termina un partido?',
-      a: 'El sistema calcula automáticamente el resultado final. Si el pronóstico fue correcto, se transfieren los puntos correspondientes a tu billetera virtual y recibes una notificación.',
+      q: '¿Cuándo se suman los puntos?',
+      a: 'Cuando el partido finaliza, el sistema compara tu pronóstico con el resultado real y suma los puntos automáticamente. Recibís una notificación con el resultado.',
       icon: CheckCircle2,
     },
     {
-      q: '¿Qué es el Ranking de Usuarios?',
-      a: 'Es una tabla de posiciones pública entre todos los usuarios registrados donde se compite de forma recreativa por quién acumula la mayor cantidad de Puntos Virtuales.',
+      q: '¿Qué es la Tabla del Prode?',
+      a: 'Es el ranking público de todos los jugadores, ordenado por puntos acumulados en el prode del torneo. Ganar más partidos exactos te sube en la tabla.',
       icon: Trophy,
     },
   ];
@@ -37,7 +42,7 @@ export const Ayuda: React.FC = () => {
           <HelpCircle className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-black text-white">Preguntas Frecuentes y Reglas</h1>
-        <p className="text-xs text-slate-400">Todo lo que necesitas saber sobre FutsalBet</p>
+        <p className="text-xs text-slate-400">Todo lo que necesitas saber sobre el Prode FutsalBet</p>
       </div>
 
       <div className="space-y-4">

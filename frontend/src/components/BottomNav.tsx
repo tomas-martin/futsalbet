@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Calendar, Radio, Trophy, Ticket, User, Target } from 'lucide-react';
-import { useBetSlip } from '../context/BetSlipContext';
+import { Home, Calendar, Radio, Target, Star, User, Shield } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const BottomNav: React.FC = () => {
-  const { items, toggleOpen } = useBetSlip();
+  const { isAdmin } = useAuth();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 z-40 px-2 py-1">
@@ -41,7 +41,7 @@ export const BottomNav: React.FC = () => {
             }`
           }
         >
-          <Target className="w-5 h-5" />
+          <Target className="w-5 h-5 text-purple-400" />
           <span>Prode</span>
         </NavLink>
 
@@ -57,32 +57,43 @@ export const BottomNav: React.FC = () => {
           <span>En Vivo</span>
         </NavLink>
 
-        <button
-          onClick={toggleOpen}
-          className="flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold text-slate-400 hover:text-slate-200 relative"
-        >
-          <div className="relative">
-            <Ticket className="w-5 h-5 text-purple-400" />
-            {items.length > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-purple-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                {items.length}
-              </span>
-            )}
-          </div>
-          <span>Boleta</span>
-        </button>
-
         <NavLink
-          to="/perfil"
+          to="/leaderboard"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
               isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
         >
-          <User className="w-5 h-5" />
-          <span>Perfil</span>
+          <Star className="w-5 h-5 text-yellow-400" />
+          <span>Tabla</span>
         </NavLink>
+
+        {isAdmin ? (
+          <NavLink
+            to="/admin/dashboard"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+                isActive ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'
+              }`
+            }
+          >
+            <Shield className="w-5 h-5 text-amber-400" />
+            <span>Admin</span>
+          </NavLink>
+        ) : (
+          <NavLink
+            to="/perfil"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+                isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
+              }`
+            }
+          >
+            <User className="w-5 h-5" />
+            <span>Perfil</span>
+          </NavLink>
+        )}
       </div>
     </nav>
   );

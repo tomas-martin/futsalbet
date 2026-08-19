@@ -1,5 +1,4 @@
-import { PrismaClient, MatchStatus, MarketStatus, MarketType, TransactionType, BetStatus } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { PrismaClient, MatchStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -10,13 +9,8 @@ async function main() {
   // LIMPIAR BD (orden correcto por FK)
   // ===========================
   await prisma.auditLog.deleteMany();
-  await prisma.betSelection.deleteMany();
-  await prisma.bet.deleteMany();
-  await prisma.walletTransaction.deleteMany();
-  await prisma.virtualWallet.deleteMany();
   await prisma.notification.deleteMany();
-  await prisma.marketOption.deleteMany();
-  await prisma.market.deleteMany();
+  await prisma.prediction.deleteMany();
   await prisma.matchEvent.deleteMany();
   await prisma.match.deleteMany();
   await prisma.standing.deleteMany();
@@ -30,17 +24,13 @@ async function main() {
   await prisma.user.deleteMany();
 
   // ===========================
-  // USUARIOS
+  // USUARIOS (los logins van por Supabase Auth)
   // ===========================
-  const adminHash = await bcrypt.hash('Admin123!', 12);
-  const userHash  = await bcrypt.hash('User123!', 12);
-
   const admin = await prisma.user.create({
     data: {
       email: 'admin@futsalbet.com',
       username: 'admin',
       displayName: 'Administrador',
-      passwordHash: adminHash,
       role: 'ADMIN',
     },
   });
@@ -50,28 +40,10 @@ async function main() {
       email: 'usuario@futsalbet.com',
       username: 'usuario1',
       displayName: 'Usuario Demo',
-      passwordHash: userHash,
     },
   });
 
-  // Wallets
-  const INITIAL = 1000;
-  for (const u of [admin, usuario]) {
-    const wallet = await prisma.virtualWallet.create({
-      data: { userId: u.id, balance: INITIAL },
-    });
-    await prisma.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        type: TransactionType.INITIAL_BONUS,
-        amount: INITIAL,
-        balanceBefore: 0,
-        balanceAfter: INITIAL,
-        description: 'Bono de bienvenida: 1000 puntos',
-      },
-    });
-  }
-  console.log('✅ Usuarios y wallets creados');
+  console.log('✅ Usuarios creados');
 
   // ===========================
   // TORNEO
@@ -186,7 +158,7 @@ async function main() {
   console.log('✅ Tabla de posiciones cargada');
 
   // ===========================
-  // HELPER: crear partido + mercados
+  // HELPER: crear partido
   // ===========================
   async function createMatch(
     homeSlug: string, awaySlug: string,
@@ -209,29 +181,6 @@ async function main() {
       },
     });
 
-    // Solo crear mercados para partidos próximos
-    if (status === MatchStatus.SCHEDULED) {
-      const market1x2 = await prisma.market.create({
-        data: { matchId: match.id, type: MarketType.MATCH_WINNER, name: 'Resultado Final', status: MarketStatus.OPEN },
-      });
-      await prisma.marketOption.createMany({
-        data: [
-          { marketId: market1x2.id, label: 'Local',     value: 'HOME', odds: parseFloat((1.6 + Math.random() * 0.9).toFixed(2)) },
-          { marketId: market1x2.id, label: 'Empate',    value: 'DRAW', odds: parseFloat((2.8 + Math.random() * 0.5).toFixed(2)) },
-          { marketId: market1x2.id, label: 'Visitante', value: 'AWAY', odds: parseFloat((2.0 + Math.random() * 1.2).toFixed(2)) },
-        ],
-      });
-
-      const marketOU = await prisma.market.create({
-        data: { matchId: match.id, type: MarketType.OVER_UNDER, name: 'Total de Goles', status: MarketStatus.OPEN },
-      });
-      await prisma.marketOption.createMany({
-        data: [
-          { marketId: marketOU.id, label: 'Más de 4.5',  value: 'OVER',  odds: parseFloat((1.5 + Math.random() * 0.4).toFixed(2)) },
-          { marketId: marketOU.id, label: 'Menos de 4.5', value: 'UNDER', odds: parseFloat((2.0 + Math.random() * 0.5).toFixed(2)) },
-        ],
-      });
-    }
     return match;
   }
 
@@ -278,7 +227,7 @@ async function main() {
   await createMatch('banco-nacion',            'aleman',              'Club Banco Nación',        'Jornada 3', j3('21','30'), MatchStatus.SCHEDULED);
   await createMatch('cop',                     'godoy-cruz',          'ETIEC',                    'Jornada 3', j3('22','00'), MatchStatus.SCHEDULED);
 
-  console.log('✅ Jornada 3 creada (8 partidos próximos con mercados)');
+  console.log('✅ Jornada 3 creada (8 partidos próximos para el prode)');
 
   // ===========================
   // NOTIFICACIONES
@@ -287,7 +236,7 @@ async function main() {
     data: {
       userId: usuario.id,
       title: '¡Bienvenido a FutsalBet!',
-      message: 'Recibiste 1000 puntos de bienvenida. ¡Apostá a la FEFUSA Primera FSP Clausura 2026!',
+      message: 'Tu cuenta fue creada. ¡Armá tus pronósticos del prode de la FEFUSA!',
       type: 'SYSTEM',
     },
   });
@@ -295,7 +244,7 @@ async function main() {
     data: {
       userId: usuario.id,
       title: '🏆 Jornada 3 disponible',
-      message: '8 partidos el jueves 14/Aug. ¡Ya podés apostar!',
+      message: '8 partidos el jueves 14/Ago. ¡Ya podés pronosticar!',
       type: 'SYSTEM',
     },
   });
@@ -303,14 +252,10 @@ async function main() {
   console.log(`
 🎉 Seed completado exitosamente!
 
-👤 Credenciales:
-   Admin:   admin@futsalbet.com  / Admin123!
-   Usuario: usuario@futsalbet.com / User123!
-
 🏆 FEFUSA Mendoza — Primera FSP Clausura 2026
    • 16 equipos reales con logos de Scorefy
    • Jornadas 1 y 2: 16 partidos finalizados
-   • Jornada 3: 8 partidos próximos + mercados de apuesta
+   • Jornada 3: 8 partidos próximos para el prode
   `);
 }
 

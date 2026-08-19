@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 import { Link } from 'react-router-dom';
-import { Calendar, Radio, Award, Filter, ArrowUpRight } from 'lucide-react';
-import { OddsButton } from '../components/OddsButton';
+import { Calendar, Radio, Award, ArrowUpRight } from 'lucide-react';
 
 export const Partidos: React.FC = () => {
   const [tab, setTab] = useState<'upcoming' | 'live' | 'results'>('upcoming');
@@ -69,107 +68,69 @@ export const Partidos: React.FC = () => {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {matches.map((match: any) => {
-            const matchWinnerMarket = match.markets?.find((m: any) => m.type === 'MATCH_WINNER');
-            const matchName = `${match.homeTeam.name} vs ${match.awayTeam.name}`;
-
-            return (
-              <div
-                key={match.id}
-                className="bg-slate-900 border border-slate-800 hover:border-purple-800/60 rounded-3xl p-5 transition space-y-4"
-              >
-                <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3">
-                  <span className="font-bold text-purple-400 truncate max-w-[200px]">
-                    {match.tournament?.name}
+          {matches.map((match: any) => (
+            <div
+              key={match.id}
+              className="bg-slate-900 border border-slate-800 hover:border-purple-800/60 rounded-3xl p-5 transition space-y-4"
+            >
+              <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3">
+                <span className="font-bold text-purple-400 truncate max-w-[200px]">
+                  {match.tournament?.name}
+                </span>
+                {tab === 'live' ? (
+                  <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-full font-black text-[10px]">
+                    MINUTO {match.minute}'
                   </span>
-                  {tab === 'live' ? (
-                    <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-full font-black text-[10px]">
-                      MINUTO {match.minute}'
-                    </span>
-                  ) : (
-                    <span className="text-slate-400 font-medium">
-                      {new Date(match.scheduledAt).toLocaleDateString('es-AR', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  )}
-                </div>
+                ) : (
+                  <span className="text-slate-400 font-medium">
+                    {new Date(match.scheduledAt).toLocaleDateString('es-AR', {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                )}
+              </div>
 
-                <div className="flex items-center justify-between px-2">
-                  <div className="flex items-center gap-3 flex-1">
-                    <img src={match.homeTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
-                    <div>
-                      <span className="font-extrabold text-sm text-white block">{match.homeTeam.name}</span>
-                      <span className="text-[10px] text-slate-500 font-semibold">Local</span>
-                    </div>
-                  </div>
-
-                  {tab === 'results' || tab === 'live' ? (
-                    <div className="text-xl font-black text-white bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
-                      {match.homeScore} - {match.awayScore}
-                    </div>
-                  ) : (
-                    <span className="text-xs font-black text-slate-600 px-3">VS</span>
-                  )}
-
-                  <div className="flex items-center justify-end gap-3 flex-1 text-right">
-                    <div>
-                      <span className="font-extrabold text-sm text-white block">{match.awayTeam.name}</span>
-                      <span className="text-[10px] text-slate-500 font-semibold">Visitante</span>
-                    </div>
-                    <img src={match.awayTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-3 flex-1">
+                  <img src={match.homeTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
+                  <div>
+                    <span className="font-extrabold text-sm text-white block">{match.homeTeam.name}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold">Local</span>
                   </div>
                 </div>
 
-                {/* ODDS FOR UPCOMING */}
-                {tab === 'upcoming' && matchWinnerMarket && (
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    <OddsButton
-                      optionId={matchWinnerMarket.options?.find((o: any) => o.value === 'HOME')?.id || ''}
-                      marketId={matchWinnerMarket.id}
-                      matchId={match.id}
-                      matchName={matchName}
-                      marketName="Ganador"
-                      label="1"
-                      odds={Number(matchWinnerMarket.options?.find((o: any) => o.value === 'HOME')?.odds || 1.8)}
-                    />
-                    <OddsButton
-                      optionId={matchWinnerMarket.options?.find((o: any) => o.value === 'DRAW')?.id || ''}
-                      marketId={matchWinnerMarket.id}
-                      matchId={match.id}
-                      matchName={matchName}
-                      marketName="Ganador"
-                      label="X"
-                      odds={Number(matchWinnerMarket.options?.find((o: any) => o.value === 'DRAW')?.odds || 3.2)}
-                    />
-                    <OddsButton
-                      optionId={matchWinnerMarket.options?.find((o: any) => o.value === 'AWAY')?.id || ''}
-                      marketId={matchWinnerMarket.id}
-                      matchId={match.id}
-                      matchName={matchName}
-                      marketName="Ganador"
-                      label="2"
-                      odds={Number(matchWinnerMarket.options?.find((o: any) => o.value === 'AWAY')?.odds || 2.1)}
-                    />
+                {tab === 'results' || tab === 'live' ? (
+                  <div className="text-xl font-black text-white bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
+                    {match.homeScore} - {match.awayScore}
                   </div>
+                ) : (
+                  <span className="text-xs font-black text-slate-600 px-3">VS</span>
                 )}
 
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-                  <span className="text-slate-500">{match.venue || 'Mendoza'}</span>
-                  <Link
-                    to={`/partidos/${match.id}`}
-                    className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
-                  >
-                    Detalles y Mercados <ArrowUpRight className="w-4 h-4" />
-                  </Link>
+                <div className="flex items-center justify-end gap-3 flex-1 text-right">
+                  <div>
+                    <span className="font-extrabold text-sm text-white block">{match.awayTeam.name}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold">Visitante</span>
+                  </div>
+                  <img src={match.awayTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
                 </div>
               </div>
-            );
-          })}
+
+              <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                <span className="text-slate-500">{match.venue || 'Mendoza'}</span>
+                <Link
+                  to={`/partidos/${match.id}`}
+                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
+                >
+                  {tab === 'upcoming' ? 'Pronosticar' : 'Detalles'} <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

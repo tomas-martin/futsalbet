@@ -2,8 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
-import { OddsButton } from '../components/OddsButton';
-import { Calendar, MapPin, Radio, Shield, Trophy, ArrowLeft, Activity } from 'lucide-react';
+import { Calendar, MapPin, Radio, Trophy, ArrowLeft, Target } from 'lucide-react';
 
 export const MatchDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,8 +20,6 @@ export const MatchDetail: React.FC = () => {
   if (!match) {
     return <div className="py-20 text-center text-slate-400 font-bold">Partido no encontrado</div>;
   }
-
-  const matchName = `${match.homeTeam.name} vs ${match.awayTeam.name}`;
 
   return (
     <div className="space-y-6 pb-12">
@@ -94,47 +91,34 @@ export const MatchDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* MARKETS & ODDS SECTION */}
+      {/* PRODE SECTION */}
       <div className="space-y-4">
         <h2 className="text-xl font-black text-white flex items-center gap-2">
-          <Activity className="w-5 h-5 text-purple-400" /> Mercados y Cuotas Recreativas
+          <Target className="w-5 h-5 text-purple-400" /> Prode FSP
         </h2>
 
         {match.status === 'FINISHED' ? (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center text-slate-400 font-semibold text-sm">
-            Los mercados de este partido han sido cerrados y resueltos.
+            Partido finalizado. El prode de este encuentro ya fue puntuado.
           </div>
-        ) : match.markets && match.markets.length > 0 ? (
-          <div className="grid gap-4">
-            {match.markets.map((market: any) => (
-              <div key={market.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <h3 className="font-bold text-sm text-purple-300">{market.name}</h3>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    {market.options.length} opciones
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {market.options.map((opt: any) => (
-                    <OddsButton
-                      key={opt.id}
-                      optionId={opt.id}
-                      marketId={market.id}
-                      matchId={match.id}
-                      matchName={matchName}
-                      marketName={market.name}
-                      label={opt.label}
-                      odds={Number(opt.odds)}
-                      disabled={market.status !== 'OPEN'}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+        ) : match.status === 'LIVE' ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center text-slate-400 font-semibold text-sm">
+            El partido está en vivo. Los pronósticos ya están bloqueados.
           </div>
         ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center text-slate-500 font-bold text-sm">
-            No hay mercados cargados para este partido.
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center space-y-3">
+            <p className="text-slate-300 font-bold text-sm">
+              Pronosticá este partido y sumá puntos en la tabla del prode
+            </p>
+            <p className="text-xs text-slate-500">
+              Resultado exacto: <strong className="text-white">6 pts</strong> • Ganador o empate: <strong className="text-white">3 pts</strong>
+            </p>
+            <Link
+              to="/prode"
+              className="inline-block px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-purple-600/30"
+            >
+              Cargar Pronóstico
+            </Link>
           </div>
         )}
       </div>

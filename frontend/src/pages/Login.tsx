@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiClient } from '../api/client';
 import { Lock, Mail, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -10,7 +9,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { login, signInWithEmail } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,23 +18,10 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      // Prefer Supabase sign-in when available
-      if (signInWithEmail) {
-        try {
-          await signInWithEmail(email, password);
-          navigate('/');
-          return;
-        } catch (supErr: any) {
-          // fallback to backend
-          console.warn('Supabase sign-in failed, falling back to backend:', supErr?.message || supErr);
-        }
-      }
-
-      const res = await apiClient.post('/auth/login', { email, password });
-      login(res.data.token, res.data.user);
+      await signIn(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Error al iniciar sesión');
+      setError(err?.message || 'Error al iniciar sesión. Verificá email y contraseña.');
     } finally {
       setLoading(false);
     }
@@ -48,12 +34,12 @@ export const Login: React.FC = () => {
           <Lock className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-black text-white">Iniciar Sesión</h1>
-        <p className="text-xs text-slate-400">Accede a tus puntos virtuales y pronósticos</p>
+        <p className="text-xs text-slate-400">Accede con tu cuenta para jugar al prode</p>
       </div>
 
       <div className="bg-purple-950/40 border border-purple-800/40 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-300">
         <ShieldCheck className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-        <span>Plataforma 100% recreativa. Todos los nuevos usuarios reciben 1000 puntos virtuales de regalo.</span>
+        <span>Plataforma 100% recreativa. El registro y el login se manejan con Supabase Auth.</span>
       </div>
 
       {error && (
@@ -102,19 +88,6 @@ export const Login: React.FC = () => {
           {loading ? 'Ingresando...' : 'Entrar'} <ArrowRight className="w-4 h-4" />
         </button>
       </form>
-
-      {/* DEMO CREDENTIALS BOX */}
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-        <p className="font-bold text-purple-400">Credenciales de prueba:</p>
-        <div className="flex justify-between text-slate-400 border-b border-slate-800/60 pb-1">
-          <span>Usuario Normal:</span>
-          <code className="text-slate-200">usuario@futsalbet.com / User123!</code>
-        </div>
-        <div className="flex justify-between text-slate-400">
-          <span>Administrador:</span>
-          <code className="text-slate-200">admin@futsalbet.com / Admin123!</code>
-        </div>
-      </div>
 
       <p className="text-center text-xs text-slate-400">
         ¿No tienes cuenta?{' '}

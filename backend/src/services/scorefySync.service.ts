@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import prisma from '../config/database';
-import { MarketStatus, MarketType, MatchStatus, Prisma, Team } from '@prisma/client';
-import { BetSettlementService } from './betSettlement.service';
+import { MatchStatus, Prisma, Team } from '@prisma/client';
+import { PredictionSettlementService } from './predictionSettlement.service';
 
 const SCOREFY_BASE = 'https://scorefy.app';
 const SCOREFY_CDN = 'https://cdn.scorefy.app';
@@ -327,58 +327,6 @@ async function ensureTeamFromStanding(standing: ScorefyStanding, categoryId: str
   return ensureTeam(pseudoTeam, categoryId, cache);
 }
 
-async function ensureDefaultMarkets(matchId: string): Promise<void> {
-  const market = await prisma.market.upsert({
-    where: { matchId_type: { matchId, type: MarketType.MATCH_WINNER } },
-    update: { status: MarketStatus.OPEN },
-    create: {
-      matchId,
-      type: MarketType.MATCH_WINNER,
-      name: 'Resultado Final',
-      status: MarketStatus.OPEN,
-    },
-  });
-
-  const existingOptions = await prisma.marketOption.count({ where: { marketId: market.id } });
-  if (existingOptions === 0) {
-    await prisma.marketOption.createMany({
-      data: [
-        { marketId: market.id, label: 'Local', value: 'HOME', odds: 1.85, isActive: true },
-        { marketId: market.id, label: 'Empate', value: 'DRAW', odds: 3.2, isActive: true },
-        { marketId: market.id, label: 'Visitante', value: 'AWAY', odds: 2.25, isActive: true },
-      ],
-    });
-  }
-
-  const goalsMarket = await prisma.market.upsert({
-    where: { matchId_type: { matchId, type: MarketType.OVER_UNDER } },
-    update: { status: MarketStatus.OPEN },
-    create: {
-      matchId,
-      type: MarketType.OVER_UNDER,
-      name: 'Total de Goles',
-      status: MarketStatus.OPEN,
-    },
-  });
-
-  const existingGoalsOptions = await prisma.marketOption.count({ where: { marketId: goalsMarket.id } });
-  if (existingGoalsOptions === 0) {
-    await prisma.marketOption.createMany({
-      data: [
-        { marketId: goalsMarket.id, label: 'Mas de 4.5', value: 'OVER_4.5', odds: 1.7, isActive: true },
-        { marketId: goalsMarket.id, label: 'Menos de 4.5', value: 'UNDER_4.5', odds: 2.1, isActive: true },
-      ],
-    });
-  }
-}
-
-async function closeMarkets(matchId: string): Promise<void> {
-  await prisma.market.updateMany({
-    where: { matchId, status: { in: [MarketStatus.OPEN, MarketStatus.SUSPENDED] } },
-    data: { status: MarketStatus.CLOSED },
-  });
-}
-
 async function upsertMatch(parsed: ParsedMatch, tournamentId: string, categoryId: string, cache: Team[]): Promise<{
   matchId: string;
   created: boolean;
@@ -418,7 +366,6 @@ async function upsertMatch(parsed: ParsedMatch, tournamentId: string, categoryId
 
   if (!match) {
     const created = await prisma.match.create({ data });
-    if (parsed.status === MatchStatus.SCHEDULED) await ensureDefaultMarkets(created.id);
     return { matchId: created.id, created: true, changed: true };
   }
 
@@ -438,12 +385,6 @@ async function upsertMatch(parsed: ParsedMatch, tournamentId: string, categoryId
     await prisma.match.update({ where: { id: match.id }, data });
   }
 
-  if (parsed.status === MatchStatus.SCHEDULED) {
-    await ensureDefaultMarkets(match.id);
-  } else {
-    await closeMarkets(match.id);
-  }
-
   return { matchId: match.id, created: false, changed };
 }
 
@@ -458,7 +399,7 @@ export async function syncFromScorefy(): Promise<{
     matchesUpdated: 0,
     resultsUpdated: 0,
     fixturesUpdated: 0,
-    betsSettled: 0,
+    predictionsSettled: 0,
     errors: 0,
   };
 
@@ -523,11 +464,6 @@ export async function syncFromScorefy(): Promise<{
       const result = await upsertMatch(parsed, tournament.id, category.id, teamCache);
       if (result.created) stats.matchesCreated++;
       if (result.changed) stats.fixturesUpdated++;
-
-      if (parsed.status === MatchStatus.POSTPONED || parsed.status === MatchStatus.CANCELLED) {
-        const refunded = await BetSettlementService.voidBetsForMatch(result.matchId, parsed.status === MatchStatus.CANCELLED ? 'Partido cancelado' : 'Partido postpuesto');
-        if (refunded > 0) stats.betsSettled += refunded;
-      }
     }
 
     for (const parsed of resultMatches) {
@@ -537,15 +473,12 @@ export async function syncFromScorefy(): Promise<{
 
       const match = await prisma.match.findUnique({ where: { id: result.matchId } });
       if (match?.status === MatchStatus.FINISHED && match.homeScore !== null && match.awayScore !== null) {
-        const settlement = await BetSettlementService.settleMatch(match.id);
-        stats.betsSettled += settlement.settled;
-      } else if (match && (match.status === MatchStatus.POSTPONED || match.status === MatchStatus.CANCELLED)) {
-        const refunded = await BetSettlementService.voidBetsForMatch(match.id, match.status === MatchStatus.CANCELLED ? 'Partido cancelado' : 'Partido postpuesto');
-        if (refunded > 0) stats.betsSettled += refunded;
+        const settlement = await PredictionSettlementService.settlePredictions(match.id);
+        stats.predictionsSettled += settlement.settled;
       }
     }
 
-    const message = `Sync completed: ${stats.standingsUpdated} standings, ${stats.fixturesUpdated} fixture updates, ${stats.resultsUpdated} result updates, ${stats.matchesCreated} new matches, ${stats.betsSettled} bets settled`;
+    const message = `Sync completed: ${stats.standingsUpdated} standings, ${stats.fixturesUpdated} fixture updates, ${stats.resultsUpdated} result updates, ${stats.matchesCreated} new matches, ${stats.predictionsSettled} predictions settled`;
     console.log(message, stats);
     return { success: true, message, stats };
   } catch (error: any) {

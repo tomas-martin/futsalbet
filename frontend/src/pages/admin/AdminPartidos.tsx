@@ -58,7 +58,7 @@ export const AdminPartidos: React.FC = () => {
         awayScore,
       });
 
-      alert('Partido finalizado y apuestas resueltas automáticamente');
+      alert('Partido finalizado y prode puntuado automáticamente');
       setSelectedMatch(null);
       queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
     } catch (err: any) {
@@ -73,7 +73,7 @@ export const AdminPartidos: React.FC = () => {
           <h2 className="text-xl font-black text-white flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-400" /> Administración de Partidos y Resultados
           </h2>
-          <p className="text-xs text-slate-400">Ingresa resultados para disparar la resolución automática de apuestas</p>
+          <p className="text-xs text-slate-400">Ingresa resultados para puntuar el prode automáticamente</p>
         </div>
 
         <div className="flex gap-2">
@@ -90,7 +90,7 @@ export const AdminPartidos: React.FC = () => {
       <div className="bg-purple-950/40 border border-purple-800/40 rounded-2xl p-3 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-purple-200">
         <span>🔒 Los pronósticos se bloquean cuando pasa el horario de inicio del partido.</span>
         <span>🎯 Prode: resultado exacto <strong>6 pts</strong> • ganador o empate <strong>3 pts</strong>.</span>
-        <span className="text-purple-300/70">Al cargar un resultado se liquidan apuestas y se puntúa el prode automáticamente.</span>
+        <span className="text-purple-300/70">Al cargar un resultado se puntúa el prode automáticamente (6 pts exacto • 3 pts ganador).</span>
       </div>
 
       {isLoading ? (
@@ -200,7 +200,7 @@ export const AdminPartidos: React.FC = () => {
               </div>
 
               <div className="p-3 bg-purple-950/40 border border-purple-800/40 rounded-xl text-[11px] text-purple-300">
-                Al confirmar, el estado cambiará a <strong>FINISHED</strong> y se liquidarán todas las apuestas asociadas.
+                Al confirmar, el estado cambiará a <strong>FINISHED</strong> y se puntuarán todos los pronósticos automáticamente.
               </div>
 
               <div className="flex gap-2">

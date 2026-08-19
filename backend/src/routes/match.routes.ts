@@ -5,7 +5,6 @@ import {
   getUpcomingMatches,
   getResults,
   getMatchById,
-  getMatchMarkets,
   createMatch,
   updateMatch,
   addMatchEvent,
@@ -20,7 +19,6 @@ matchRouter.get('/live', getLiveMatches);
 matchRouter.get('/upcoming', getUpcomingMatches);
 matchRouter.get('/results', getResults);
 matchRouter.get('/:id', getMatchById);
-matchRouter.get('/:id/markets', getMatchMarkets);
 
 // Admin routes
 matchRouter.post('/', authenticate, requireAdmin, createMatch);

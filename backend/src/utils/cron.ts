@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import prisma from '../config/database';
-import { BetSettlementService } from '../services/betSettlement.service';
+import { PredictionSettlementService } from '../services/predictionSettlement.service';
 import { MatchStatus } from '@prisma/client';
 
 // Los partidos sincronizados desde Scorefy tienen externalId.
@@ -37,10 +37,10 @@ export function startCronJobs() {
 
           // Solo resolver si hay un resultado REAL cargado (no el 0-0 placeholder).
           if (match.homeScore !== null && match.awayScore !== null) {
-            await BetSettlementService.settleMatch(match.id);
-            console.log(`⚽ Partido demo ${match.id} finalizado y apuestas resueltas por Cron`);
+            await PredictionSettlementService.settlePredictions(match.id);
+            console.log(`⚽ Partido demo ${match.id} finalizado y prode puntuado por Cron`);
           } else {
-            console.log(`⚽ Partido demo ${match.id} finalizado SIN resultado (no se liquidaron apuestas)`);
+            console.log(`⚽ Partido demo ${match.id} finalizado SIN resultado (no se puntuó el prode)`);
           }
         } else {
           // Actualizar minuto en vivo
@@ -79,13 +79,7 @@ export function startCronJobs() {
           },
         });
 
-        // Cerrar mercados al comenzar el partido (no se aceptan más apuestas).
-        await prisma.market.updateMany({
-          where: { matchId: match.id, status: { in: ['OPEN', 'SUSPENDED'] } },
-          data: { status: 'CLOSED' },
-        });
-
-        console.log(`▶️ Partido demo ${match.id} pasó a LIVE por Cron (mercados cerrados)`);
+        console.log(`▶️ Partido demo ${match.id} pasó a LIVE por Cron`);
       }
     } catch (error) {
       console.error('Error en Cron de inicio de partidos:', error);

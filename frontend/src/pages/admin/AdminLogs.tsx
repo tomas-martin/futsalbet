@@ -15,7 +15,7 @@ export const AdminLogs: React.FC = () => {
         <h2 className="text-xl font-black text-white flex items-center gap-2">
           <FileText className="w-5 h-5 text-amber-400" /> Registros de Auditoría (AuditLogs)
         </h2>
-        <p className="text-xs text-slate-400">Trazabilidad de modificaciones de cuotas, usuarios y partidos</p>
+        <p className="text-xs text-slate-400">Trazabilidad de modificaciones de usuarios, partidos y predicciones</p>
       </div>
 
       {isLoading ? (

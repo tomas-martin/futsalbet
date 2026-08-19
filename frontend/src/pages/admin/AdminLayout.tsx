@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, Calendar, Coins, ShieldAlert, FileText, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, ShieldAlert, FileText, ArrowLeft } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -15,7 +15,6 @@ export const AdminLayout: React.FC = () => {
     { to: '/admin/usuarios', label: 'Usuarios', icon: Users },
     { to: '/admin/partidos', label: 'Partidos y Resultados', icon: Calendar },
     { to: '/admin/predictions', label: 'Predicciones', icon: FileText },
-    { to: '/admin/cuotas', label: 'Cuotas y Mercados', icon: Coins },
     { to: '/admin/logs', label: 'Audit Logs', icon: FileText },
   ];
 
@@ -29,7 +28,7 @@ export const AdminLayout: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-black text-white">Panel Administrativo</h1>
-            <p className="text-xs text-amber-400 font-bold">Gestión de FutsalBet • Control de Cuotas y Partidos</p>
+            <p className="text-xs text-amber-400 font-bold">Gestión de FutsalBet • Prode, Partidos y Resultados</p>
           </div>
         </div>
 
