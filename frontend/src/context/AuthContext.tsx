@@ -80,22 +80,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string) => {
-    if (!supabase) throw new Error('Supabase no está configurado en el frontend');
-    const redirectTo = `${window.location.origin}/login`;
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectTo,
-      },
-    });
-    if (error) throw error;
+    // 1. Intentar registro sin verificación vía backend (usuario pre-confirmado en Supabase Auth)
+    try {
+      await apiClient.post('/auth/register', { email, password });
+      // Iniciar sesión automáticamente
+      if (supabase) {
+        await signIn(email, password);
+      }
+      return { requiresEmailConfirmation: false };
+    } catch (backendErr: any) {
+      const message = backendErr.response?.data?.error;
+      if (message) {
+        throw new Error(message);
+      }
 
-    if (data.session) {
-      await exchangeSupabaseSession(data.session.access_token);
+      // 2. Fallback a Supabase Auth directo en caso de que el backend no responda
+      if (!supabase) throw new Error('Supabase no está configurado en el frontend');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      if (data.session) {
+        await exchangeSupabaseSession(data.session.access_token);
+      } else {
+        // Intentar iniciar sesión por si email_confirm está desactivado en la consola
+        await signIn(email, password).catch(() => {});
+      }
       return { requiresEmailConfirmation: false };
     }
-    return { requiresEmailConfirmation: true };
   };
 
   const signIn = async (email: string, password: string) => {

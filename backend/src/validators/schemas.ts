@@ -4,6 +4,11 @@ export const supabaseAuthSchema = z.object({
   accessToken: z.string().min(1, 'Token de acceso requerido'),
 });
 
+export const registerSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+});
+
 export const updateMatchSchema = z.object({
   tournamentId: z.string().min(1).optional(),
   homeTeamId: z.string().min(1).optional(),

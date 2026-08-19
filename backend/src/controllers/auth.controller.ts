@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { createClient } from '@supabase/supabase-js';
 import prisma from '../config/database';
-import { supabaseAuthSchema } from '../validators/schemas';
+import { supabaseAuthSchema, registerSchema } from '../validators/schemas';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'super_secret_key_futsalbet_2026';
@@ -117,6 +117,77 @@ export const supabaseAuth = async (req: Request, res: Response, next: NextFuncti
         username: user.username,
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Registra un usuario pre-confirmado en Supabase Auth usando Service Role key,
+ * sin enviar ningún correo de confirmación (evitando límites de rate limit de email).
+ */
+export const registerDirectly = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email, password } = registerSchema.parse(req.body);
+    const normalizedEmail = email.toLowerCase();
+
+    const sb = supabaseAdmin();
+    // Crear usuario en Supabase Auth pre-confirmado
+    const { data: sbData, error: sbError } = await sb.auth.admin.createUser({
+      email: normalizedEmail,
+      password,
+      email_confirm: true,
+    });
+
+    if (sbError) {
+      if (sbError.message.toLowerCase().includes('already registered') || sbError.status === 422) {
+        res.status(400).json({ error: 'Este correo electrónico ya se encuentra registrado.' });
+        return;
+      }
+      res.status(400).json({ error: sbError.message || 'Error al crear la cuenta en Supabase' });
+      return;
+    }
+
+    const supabaseUser = sbData.user;
+    if (!supabaseUser) {
+      res.status(500).json({ error: 'No se pudo generar el usuario en Supabase' });
+      return;
+    }
+
+    const isAdminUser = ADMIN_EMAIL !== '' && normalizedEmail === ADMIN_EMAIL;
+    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    if (!user) {
+      const username = await uniqueUsername(deriveUsername(normalizedEmail));
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          username,
+          displayName: displayNameFor({}, normalizedEmail),
+          role: isAdminUser ? 'ADMIN' : 'USER',
+        },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: '¡Bienvenido a FutsalBet!',
+          message: 'Tu cuenta fue creada. ¡Empieza a jugar al prode!',
+          type: 'SYSTEM',
+        },
+      });
+    }
+
+    res.status(201).json({
+      message: 'Usuario registrado exitosamente',
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
         role: user.role,
       },
     });

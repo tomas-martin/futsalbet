@@ -20,12 +20,8 @@ export const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      const { requiresEmailConfirmation } = await signUp(email, password);
-      if (requiresEmailConfirmation) {
-        setInfo('Revisá tu casilla de email para confirmar la cuenta antes de iniciar sesión.');
-      } else {
-        navigate('/');
-      }
+      await signUp(email, password);
+      navigate('/');
     } catch (err: any) {
       setError(err?.message || 'Error al crear la cuenta');
     } finally {
