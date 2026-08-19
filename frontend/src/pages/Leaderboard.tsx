@@ -34,12 +34,12 @@ export const Leaderboard: React.FC = () => {
           <p className="text-xs text-slate-400">Ranking por aciertos de pronósticos del torneo seleccionado</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl">
-          <label className="text-xs text-slate-400 font-bold mr-2">Torneo:</label>
+        <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+          <label className="text-xs text-slate-400 font-bold shrink-0">Torneo:</label>
           <select
             value={selectedTournament ?? ''}
             onChange={(e) => setSelectedTournament(e.target.value)}
-            className="bg-slate-950 text-sm text-white rounded-xl px-3 py-1 border border-slate-800"
+            className="bg-slate-950 text-xs sm:text-sm text-white rounded-xl px-3 py-1.5 border border-slate-800 focus:outline-none focus:border-purple-500 w-full sm:w-auto truncate"
           >
             {tournaments?.map((t: any) => (
               <option key={t.id} value={t.id}>{t.name}</option>

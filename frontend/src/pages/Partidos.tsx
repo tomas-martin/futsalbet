@@ -28,30 +28,30 @@ export const Partidos: React.FC = () => {
           <p className="text-xs text-slate-400">Consulta los próximos encuentros, resultados y en vivo</p>
         </div>
 
-        <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl">
+        <div className="grid grid-cols-3 w-full sm:w-auto bg-slate-900 border border-slate-800 p-1 rounded-2xl gap-1">
           <button
             onClick={() => setTab('upcoming')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
               tab === 'upcoming' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5" /> Próximos
+            <Calendar className="w-3.5 h-3.5" /> <span>Próximos</span>
           </button>
           <button
             onClick={() => setTab('live')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
               tab === 'live' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Radio className="w-3.5 h-3.5 animate-pulse" /> En Vivo
+            <Radio className="w-3.5 h-3.5 animate-pulse" /> <span>En Vivo</span>
           </button>
           <button
             onClick={() => setTab('results')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${
               tab === 'results' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Award className="w-3.5 h-3.5" /> Resultados
+            <Award className="w-3.5 h-3.5" /> <span>Resultados</span>
           </button>
         </div>
       </div>
@@ -71,10 +71,10 @@ export const Partidos: React.FC = () => {
           {matches.map((match: any) => (
             <div
               key={match.id}
-              className="bg-slate-900 border border-slate-800 hover:border-purple-800/60 rounded-3xl p-5 transition space-y-4"
+              className="bg-slate-900 border border-slate-800 hover:border-purple-800/60 rounded-3xl p-4 sm:p-5 transition space-y-4 shadow-lg"
             >
               <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3">
-                <span className="font-bold text-purple-400 truncate max-w-[200px]">
+                <span className="font-bold text-purple-400 truncate max-w-[180px] sm:max-w-[220px]">
                   {match.tournament?.name}
                 </span>
                 {tab === 'live' ? (
@@ -82,7 +82,7 @@ export const Partidos: React.FC = () => {
                     MINUTO {match.minute}'
                   </span>
                 ) : (
-                  <span className="text-slate-400 font-medium">
+                  <span className="text-slate-400 font-medium shrink-0">
                     {new Date(match.scheduledAt).toLocaleDateString('es-AR', {
                       weekday: 'short',
                       day: 'numeric',
@@ -95,37 +95,37 @@ export const Partidos: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-3 flex-1">
-                  <img src={match.homeTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
-                  <div>
-                    <span className="font-extrabold text-sm text-white block">{match.homeTeam.name}</span>
-                    <span className="text-[10px] text-slate-500 font-semibold">Local</span>
+              <div className="flex items-center justify-between px-1 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <img src={match.homeTeam.logoUrl} alt="" className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-extrabold text-xs sm:text-sm text-white block truncate">{match.homeTeam.name}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold block">Local</span>
                   </div>
                 </div>
 
                 {tab === 'results' || tab === 'live' ? (
-                  <div className="text-xl font-black text-white bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
+                  <div className="text-base sm:text-xl font-black text-white bg-slate-950 px-2.5 sm:px-3 py-1 rounded-xl border border-slate-800 shrink-0">
                     {match.homeScore} - {match.awayScore}
                   </div>
                 ) : (
-                  <span className="text-xs font-black text-slate-600 px-3">VS</span>
+                  <span className="text-xs font-black text-slate-600 px-2 shrink-0">VS</span>
                 )}
 
-                <div className="flex items-center justify-end gap-3 flex-1 text-right">
-                  <div>
-                    <span className="font-extrabold text-sm text-white block">{match.awayTeam.name}</span>
-                    <span className="text-[10px] text-slate-500 font-semibold">Visitante</span>
+                <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1 text-right min-w-0">
+                  <div className="min-w-0 flex-1">
+                    <span className="font-extrabold text-xs sm:text-sm text-white block truncate">{match.awayTeam.name}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold block">Visitante</span>
                   </div>
-                  <img src={match.awayTeam.logoUrl} alt="" className="w-10 h-10 object-contain" />
+                  <img src={match.awayTeam.logoUrl} alt="" className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0" />
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-500">{match.venue || 'Mendoza'}</span>
+                <span className="text-slate-500 truncate max-w-[150px]">{match.venue || 'Mendoza'}</span>
                 <Link
                   to={`/partidos/${match.id}`}
-                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
+                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 shrink-0"
                 >
                   {tab === 'upcoming' ? 'Pronosticar' : 'Detalles'} <ArrowUpRight className="w-4 h-4" />
                 </Link>

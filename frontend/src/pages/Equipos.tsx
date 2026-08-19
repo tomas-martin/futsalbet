@@ -26,22 +26,22 @@ export const Equipos: React.FC = () => {
           No hay equipos registrados.
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {teams.map((team: any) => (
             <Link
               key={team.id}
               to={`/equipos/${team.id}`}
-              className="bg-slate-900 border border-slate-800 hover:border-purple-600/60 rounded-3xl p-5 text-center space-y-3 transition hover:-translate-y-1 shadow-lg group"
+              className="bg-slate-900 border border-slate-800 hover:border-purple-600/60 rounded-3xl p-3.5 sm:p-5 text-center space-y-2.5 sm:space-y-3 transition hover:-translate-y-1 shadow-lg group flex flex-col items-center justify-between"
             >
-              <img src={team.logoUrl} alt="" className="w-16 h-16 object-contain mx-auto group-hover:scale-110 transition duration-200" />
-              <div>
-                <h3 className="font-extrabold text-sm text-white group-hover:text-purple-300 transition">{team.name}</h3>
-                <p className="text-[11px] text-slate-500 flex items-center justify-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3" /> {team.city || 'Mendoza'}
+              <img src={team.logoUrl} alt="" className="w-12 h-12 sm:w-16 sm:h-16 object-contain mx-auto group-hover:scale-110 transition duration-200 shrink-0" />
+              <div className="w-full min-w-0">
+                <h3 className="font-extrabold text-xs sm:text-sm text-white group-hover:text-purple-300 transition truncate">{team.name}</h3>
+                <p className="text-[10px] sm:text-[11px] text-slate-500 flex items-center justify-center gap-1 mt-0.5 truncate">
+                  <MapPin className="w-3 h-3 shrink-0" /> <span className="truncate">{team.city || 'Mendoza'}</span>
                 </p>
               </div>
-              <span className="inline-flex items-center text-xs font-bold text-purple-400 gap-1 group-hover:underline">
-                Ver perfil <ChevronRight className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center text-[11px] sm:text-xs font-bold text-purple-400 gap-1 group-hover:underline">
+                Ver perfil <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </span>
             </Link>
           ))}

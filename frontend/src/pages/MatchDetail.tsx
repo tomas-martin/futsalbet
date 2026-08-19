@@ -53,41 +53,43 @@ export const MatchDetail: React.FC = () => {
         </div>
 
         {/* TEAMS & SCORE */}
-        <div className="grid grid-cols-3 items-center text-center py-4">
-          <div className="flex flex-col items-center gap-2">
-            <img src={match.homeTeam.logoUrl} alt="" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-black text-sm md:text-xl text-white leading-tight break-words px-1">{match.homeTeam.name}</span>
-            <span className="text-xs text-slate-500 font-semibold">Local</span>
+        <div className="grid grid-cols-3 items-center text-center py-4 gap-1 sm:gap-4">
+          <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-0">
+            <img src={match.homeTeam.logoUrl} alt="" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-lg shrink-0" />
+            <span className="font-black text-xs sm:text-base md:text-xl text-white leading-tight break-words px-1">{match.homeTeam.name}</span>
+            <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">Local</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {match.status === 'FINISHED' || match.status === 'LIVE' ? (
-              <div className="text-3xl md:text-6xl font-black text-white bg-slate-950/80 py-2 md:py-3 px-4 md:px-6 rounded-2xl border border-slate-800 inline-block shadow-inner">
+              <div className="text-xl sm:text-3xl md:text-5xl font-black text-white bg-slate-950/80 py-1.5 sm:py-2 px-2.5 sm:px-5 rounded-xl sm:rounded-2xl border border-slate-800 inline-block shadow-inner">
                 {match.homeScore} - {match.awayScore}
               </div>
             ) : (
-              <div className="text-2xl font-black text-purple-400">VS</div>
+              <div className="text-xl sm:text-2xl font-black text-purple-400">VS</div>
             )}
-            <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
-              {new Date(match.scheduledAt).toLocaleDateString('es-AR', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              })}
+            <p className="text-[10px] sm:text-xs text-slate-400 flex items-center justify-center gap-1">
+              <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span>
+                {new Date(match.scheduledAt).toLocaleDateString('es-AR', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })}
+              </span>
             </p>
-            <p className="text-xs text-slate-500 flex items-center justify-center gap-1">
-              <MapPin className="w-3.5 h-3.5" /> {match.venue || 'Polideportivo Mendoza'}
+            <p className="text-[10px] sm:text-xs text-slate-500 flex items-center justify-center gap-1">
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> <span className="truncate">{match.venue || 'Polideportivo Mendoza'}</span>
             </p>
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <img src={match.awayTeam.logoUrl} alt="" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-black text-sm md:text-xl text-white leading-tight break-words px-1">{match.awayTeam.name}</span>
-            <span className="text-xs text-slate-500 font-semibold">Visitante</span>
+          <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-0">
+            <img src={match.awayTeam.logoUrl} alt="" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain drop-shadow-lg shrink-0" />
+            <span className="font-black text-xs sm:text-base md:text-xl text-white leading-tight break-words px-1">{match.awayTeam.name}</span>
+            <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">Visitante</span>
           </div>
         </div>
       </div>

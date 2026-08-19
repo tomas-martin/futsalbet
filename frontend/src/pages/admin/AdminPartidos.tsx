@@ -216,7 +216,7 @@ export const AdminPartidos: React.FC = () => {
       {/* SETTLE MATCH MODAL */}
       {selectedMatch && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-sm w-full space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
             <h3 className="font-black text-lg text-white">
               {selectedMatch.status === 'FINISHED' ? 'Modificar Resultado' : 'Finalizar Partido'}
             </h3>
@@ -227,7 +227,7 @@ export const AdminPartidos: React.FC = () => {
             <form onSubmit={handleSettleMatch} className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">{selectedMatch.homeTeam?.name}</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1 truncate">{selectedMatch.homeTeam?.name}</label>
                   <input
                     type="number"
                     min="0"
@@ -238,7 +238,7 @@ export const AdminPartidos: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">{selectedMatch.awayTeam?.name}</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1 truncate">{selectedMatch.awayTeam?.name}</label>
                   <input
                     type="number"
                     min="0"
@@ -347,7 +347,7 @@ const CreateOrEditMatchModal: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 max-w-md w-full space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
         <h3 className="font-black text-lg text-white">{initial ? 'Editar Partido' : 'Crear Partido'}</h3>
 
         <form onSubmit={handleSubmit} className="space-y-3">

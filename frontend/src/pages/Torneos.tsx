@@ -42,7 +42,7 @@ export const Torneos: React.FC = () => {
 
               <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{t.description}</p>
 
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+              <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3 text-xs text-slate-400">
                   <span className="flex items-center gap-1 font-semibold">
                     <Users className="w-3.5 h-3.5 text-purple-400" /> {t._count?.standings || 12} Equipos
@@ -50,9 +50,9 @@ export const Torneos: React.FC = () => {
                 </div>
                 <Link
                   to={`/torneos/${t.id}`}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl transition flex items-center gap-1"
+                  className="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-1"
                 >
-                  Ver Posiciones y Fixture <ChevronRight className="w-4 h-4" />
+                  <span>Ver Posiciones y Fixture</span> <ChevronRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>

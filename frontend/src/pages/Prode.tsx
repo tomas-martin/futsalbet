@@ -103,41 +103,108 @@ export const Prode: React.FC = () => {
         {isLoading ? (
           <div className="py-12 text-center text-slate-500 font-bold">Cargando partidos...</div>
         ) : !matchesData || matchesData.length === 0 ? (
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-sm">No hay partidos próximos para predecir.</div>
+          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl text-slate-400 text-sm text-center">
+            No hay partidos próximos para predecir.
+          </div>
         ) : (
           matchesData.map((m: any) => (
-            <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
-              <div className="min-w-0">
-                <div className="font-bold text-white">{m.homeTeam?.name} <span className="text-slate-400">vs</span> {m.awayTeam?.name}</div>
-                <div className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleString('es-AR', { hour12: false })}</div>
+            <div
+              key={m.id}
+              className="bg-slate-900 border border-slate-800 hover:border-purple-800/50 rounded-3xl p-4 sm:p-5 space-y-4 transition shadow-lg"
+            >
+              {/* TOURNAMENT & DATE BAR */}
+              <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-2.5">
+                <span className="font-bold text-purple-400 truncate max-w-[200px] sm:max-w-none">
+                  {m.tournament?.name}
+                </span>
+                <span className="text-slate-400 text-[11px] font-medium shrink-0">
+                  {new Date(m.scheduledAt).toLocaleString('es-AR', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}
+                </span>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap md:shrink-0">
-                <input
-                  type="number"
-                  min={0}
-                  value={preds[m.id]?.home ?? ''}
-                  onChange={(e) => handleChange(m.id, 'home', e.target.value)}
-                  placeholder="0"
-                  className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
-                />
-                <span className="text-white font-black">-</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={preds[m.id]?.away ?? ''}
-                  onChange={(e) => handleChange(m.id, 'away', e.target.value)}
-                  placeholder="0"
-                  className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
-                />
+              {/* MATCH & PREDICTION FORM */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                {/* HOME TEAM */}
+                <div className="flex items-center sm:flex-col justify-start sm:justify-center gap-3 text-left sm:text-center min-w-0">
+                  <img
+                    src={m.homeTeam?.logoUrl}
+                    alt=""
+                    className="w-9 h-9 sm:w-12 sm:h-12 object-contain shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <span className="font-extrabold text-sm text-white block truncate">
+                      {m.homeTeam?.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold block sm:hidden">Local</span>
+                  </div>
+                </div>
 
+                {/* SCORE INPUTS */}
+                <div className="flex items-center justify-center gap-2 py-1">
+                  <input
+                    type="number"
+                    min={0}
+                    value={preds[m.id]?.home ?? ''}
+                    onChange={(e) => handleChange(m.id, 'home', e.target.value)}
+                    placeholder="0"
+                    className="w-16 h-12 bg-slate-950 border border-slate-800 rounded-2xl px-2 text-center text-lg font-black text-white focus:outline-none focus:border-purple-500 shadow-inner"
+                  />
+                  <span className="text-purple-400 font-black text-xl px-1">-</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={preds[m.id]?.away ?? ''}
+                    onChange={(e) => handleChange(m.id, 'away', e.target.value)}
+                    placeholder="0"
+                    className="w-16 h-12 bg-slate-950 border border-slate-800 rounded-2xl px-2 text-center text-lg font-black text-white focus:outline-none focus:border-purple-500 shadow-inner"
+                  />
+                </div>
+
+                {/* AWAY TEAM */}
+                <div className="flex items-center sm:flex-col justify-end sm:justify-center gap-3 text-right sm:text-center min-w-0">
+                  <div className="min-w-0 flex-1 sm:order-2">
+                    <span className="font-extrabold text-sm text-white block truncate">
+                      {m.awayTeam?.name}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold block sm:hidden">Visitante</span>
+                  </div>
+                  <img
+                    src={m.awayTeam?.logoUrl}
+                    alt=""
+                    className="w-9 h-9 sm:w-12 sm:h-12 object-contain shrink-0 sm:order-1"
+                  />
+                </div>
+              </div>
+
+              {/* SAVE BUTTON */}
+              <div className="pt-2 border-t border-slate-800/60 flex items-center justify-end">
                 <button
                   onClick={() => handleSubmit(m.id)}
                   disabled={mutation.isPending && mutation.variables?.matchId === m.id}
-                  className="ml-auto md:ml-4 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold rounded-xl text-xs transition flex items-center gap-1.5"
+                  className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-lg ${
+                    saved[m.id]
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/40'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-orange-500/20'
+                  }`}
                 >
-                  <Save className="w-3.5 h-3.5" />
-                  {saved[m.id] ? 'Guardado' : 'Guardar'}
+                  {saved[m.id] ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span>Pronóstico Guardado</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>Guardar Pronóstico</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -145,10 +212,15 @@ export const Prode: React.FC = () => {
         )}
 
         {!isAuthenticated && (
-          <div className="flex items-center justify-between p-4 bg-slate-900 border border-slate-800 rounded-2xl text-sm">
-            <span className="text-slate-400">Iniciá sesión para guardar y competir en el prode.</span>
-            <Link to="/login" className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
-              <LogIn className="w-3.5 h-3.5" /> Iniciar sesión
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-slate-900 border border-slate-800 rounded-2xl text-xs">
+            <span className="text-slate-400 text-center sm:text-left">
+              Iniciá sesión para guardar tus pronósticos y competir en la tabla del prode.
+            </span>
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 whitespace-nowrap"
+            >
+              <LogIn className="w-4 h-4" /> Iniciar sesión
             </Link>
           </div>
         )}

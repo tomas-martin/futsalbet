@@ -146,23 +146,23 @@ export const Home: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-3 flex-1">
-                  <img src={match.homeTeam.logoUrl} alt="" className="w-8 h-8 object-contain" />
-                  <span className="font-bold text-sm text-white">{match.homeTeam.name}</span>
+              <div className="flex items-center justify-between px-2 gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <img src={match.homeTeam.logoUrl} alt="" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0" />
+                  <span className="font-bold text-xs sm:text-sm text-white truncate min-w-0 flex-1">{match.homeTeam.name}</span>
                 </div>
-                <span className="text-xs font-extrabold text-slate-500 px-3">VS</span>
-                <div className="flex items-center justify-end gap-3 flex-1 text-right">
-                  <span className="font-bold text-sm text-white">{match.awayTeam.name}</span>
-                  <img src={match.awayTeam.logoUrl} alt="" className="w-8 h-8 object-contain" />
+                <span className="text-xs font-extrabold text-slate-500 px-1 sm:px-3 shrink-0">VS</span>
+                <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1 text-right min-w-0">
+                  <span className="font-bold text-xs sm:text-sm text-white truncate min-w-0 flex-1">{match.awayTeam.name}</span>
+                  <img src={match.awayTeam.logoUrl} alt="" className="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0" />
                 </div>
               </div>
 
               <div className="pt-1 flex items-center justify-between text-xs border-t border-slate-800/60">
-                <span className="text-slate-500">{match.venue || 'Mendoza'}</span>
+                <span className="text-slate-500 truncate max-w-[140px]">{match.venue || 'Mendoza'}</span>
                 <Link
                   to={`/partidos/${match.id}`}
-                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1"
+                  className="text-purple-400 hover:text-purple-300 font-bold flex items-center gap-1 shrink-0"
                 >
                   Detalles <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
@@ -188,17 +188,17 @@ export const Home: React.FC = () => {
           {resultsData?.map((m: any) => (
             <div key={m.id} className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-center space-y-2">
               <p className="text-[10px] text-slate-500 font-semibold truncate">{m.tournament.name}</p>
-              <div className="flex items-center justify-around py-1">
-                <div className="flex flex-col items-center">
-                  <img src={m.homeTeam.logoUrl} alt="" className="w-7 h-7 object-contain" />
-                  <span className="text-[11px] font-bold text-slate-200 mt-1 truncate max-w-[60px]">{m.homeTeam.shortName || m.homeTeam.name}</span>
+              <div className="flex items-center justify-between py-1 px-1 gap-1">
+                <div className="flex flex-col items-center min-w-0 flex-1">
+                  <img src={m.homeTeam.logoUrl} alt="" className="w-7 h-7 object-contain shrink-0" />
+                  <span className="text-[11px] font-bold text-slate-200 mt-1 truncate w-full">{m.homeTeam.shortName || m.homeTeam.name}</span>
                 </div>
-                <span className="text-lg font-black text-white bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800">
+                <span className="text-base sm:text-lg font-black text-white bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800 shrink-0">
                   {m.homeScore} - {m.awayScore}
                 </span>
-                <div className="flex flex-col items-center">
-                  <img src={m.awayTeam.logoUrl} alt="" className="w-7 h-7 object-contain" />
-                  <span className="text-[11px] font-bold text-slate-200 mt-1 truncate max-w-[60px]">{m.awayTeam.shortName || m.awayTeam.name}</span>
+                <div className="flex flex-col items-center min-w-0 flex-1">
+                  <img src={m.awayTeam.logoUrl} alt="" className="w-7 h-7 object-contain shrink-0" />
+                  <span className="text-[11px] font-bold text-slate-200 mt-1 truncate w-full">{m.awayTeam.shortName || m.awayTeam.name}</span>
                 </div>
               </div>
             </div>

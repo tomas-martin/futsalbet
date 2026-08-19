@@ -46,11 +46,11 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-16 md:pb-0">
+          <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-24 md:pb-6">
             <Header />
             <Navbar />
 
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<Home />} />
