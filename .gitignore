@@ -43,3 +43,6 @@ db.glass
 # Temporary / Scratch files
 tmp/
 temp/
+
+.vercel
+.env*
