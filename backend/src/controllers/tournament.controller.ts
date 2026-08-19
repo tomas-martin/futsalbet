@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import { AuthRequest } from '../middlewares/auth.middleware';
+import { MatchStatus } from '@prisma/client';
+import { recomputeStandings } from '../services/standing.service';
 
 export const getTournaments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -44,8 +46,36 @@ export const getTournamentById = async (req: Request, res: Response, next: NextF
 
 export const getTournamentStandings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const tournamentId = req.params.id;
+
+    // Auto-reparación: si hay partidos finalizados más nuevos que la última tabla
+    // calculada, se recalcula antes de responder. Así la tabla nunca queda
+    // desactualizada respecto a los resultados cargados.
+    const [lastStanding, lastFinished] = await Promise.all([
+      prisma.standing.aggregate({
+        where: { tournamentId },
+        _max: { updatedAt: true },
+      }),
+      prisma.match.aggregate({
+        where: {
+          tournamentId,
+          status: MatchStatus.FINISHED,
+          homeScore: { not: null },
+          awayScore: { not: null },
+        },
+        _max: { updatedAt: true },
+      }),
+    ]);
+
+    if (
+      !lastStanding._max.updatedAt ||
+      (lastFinished._max.updatedAt && lastFinished._max.updatedAt > lastStanding._max.updatedAt)
+    ) {
+      await recomputeStandings(tournamentId);
+    }
+
     const standings = await prisma.standing.findMany({
-      where: { tournamentId: req.params.id },
+      where: { tournamentId },
       orderBy: [{ points: 'desc' }, { goalDiff: 'desc' }, { goalsFor: 'desc' }],
       include: {
         team: { select: { id: true, name: true, logoUrl: true, shortName: true } },
