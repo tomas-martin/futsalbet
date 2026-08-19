@@ -49,8 +49,8 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 h-16 flex items-center justify-between gap-2">
+      <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
+        <div className="max-w-7xl mx-auto px-3 md:px-4 h-14 md:h-16 flex items-center justify-between gap-2">
           {/* LOGO & HAMBURGER */}
           <div className="flex items-center gap-2 min-w-0">
             <button
@@ -203,7 +203,7 @@ export const Header: React.FC = () => {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-4/5 max-w-xs bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-full z-10 shadow-2xl animate-in slide-in-from-left duration-200">
+          <div className="relative w-4/5 max-w-xs bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col h-full z-10 shadow-2xl animate-in slide-in-from-left duration-200 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
             {/* Drawer Header */}
             <div className="p-4 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
