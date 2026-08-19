@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { CheckCircle2, X } from 'lucide-react';
 
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
@@ -41,56 +42,83 @@ const queryClient = new QueryClient({
   },
 });
 
+const AppLayout: React.FC = () => {
+  const { authSuccessNotice, clearAuthSuccessNotice } = useAuth();
+
+  return (
+    <BrowserRouter>
+      <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-24 md:pb-6">
+        <Header />
+
+        {authSuccessNotice && (
+          <div className="max-w-7xl w-full mx-auto px-3 sm:px-4 mt-3">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 sm:p-4 flex items-center justify-between gap-3 text-emerald-300 text-xs sm:text-sm font-semibold shadow-lg shadow-emerald-950/40">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>{authSuccessNotice}</span>
+              </div>
+              <button
+                onClick={clearAuthSuccessNotice}
+                className="p-1 hover:bg-emerald-500/20 rounded-lg text-emerald-400 hover:text-emerald-200 transition"
+                title="Cerrar"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        <Navbar />
+
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/partidos" element={<Partidos />} />
+            <Route path="/partidos/:id" element={<MatchDetail />} />
+            <Route path="/en-vivo" element={<EnVivo />} />
+            <Route path="/resultados" element={<Resultados />} />
+            <Route path="/torneos" element={<Torneos />} />
+            <Route path="/torneos/:id" element={<TorneoDetail />} />
+            <Route path="/equipos" element={<Equipos />} />
+            <Route path="/equipos/:id" element={<EquipoDetail />} />
+            <Route path="/prode" element={<Prode />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/ayuda" element={<Ayuda />} />
+
+            {/* Authenticated user routes */}
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/mis-pronosticos" element={<MisPronosticos />} />
+            <Route path="/favoritos" element={<Favoritos />} />
+
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="partidos" element={<AdminPartidos />} />
+              <Route path="predictions" element={<AdminPredictions />} />
+              <Route path="logs" element={<AdminLogs />} />
+            </Route>
+
+            {/* 404 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+
+        <BottomNav />
+      </div>
+    </BrowserRouter>
+  );
+};
+
 export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-24 md:pb-6">
-            <Header />
-            <Navbar />
-
-            <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6">
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/partidos" element={<Partidos />} />
-                <Route path="/partidos/:id" element={<MatchDetail />} />
-                <Route path="/en-vivo" element={<EnVivo />} />
-                <Route path="/resultados" element={<Resultados />} />
-                <Route path="/torneos" element={<Torneos />} />
-                <Route path="/torneos/:id" element={<TorneoDetail />} />
-                <Route path="/equipos" element={<Equipos />} />
-                <Route path="/equipos/:id" element={<EquipoDetail />} />
-                <Route path="/prode" element={<Prode />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/ayuda" element={<Ayuda />} />
-
-                {/* Authenticated user routes */}
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/mis-pronosticos" element={<MisPronosticos />} />
-                <Route path="/favoritos" element={<Favoritos />} />
-
-                {/* Admin routes */}
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="usuarios" element={<AdminUsuarios />} />
-                  <Route path="partidos" element={<AdminPartidos />} />
-                  <Route path="predictions" element={<AdminPredictions />} />
-                  <Route path="logs" element={<AdminLogs />} />
-                </Route>
-
-                {/* 404 */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-
-            <BottomNav />
-          </div>
-        </BrowserRouter>
+        <AppLayout />
       </AuthProvider>
     </QueryClientProvider>
   );

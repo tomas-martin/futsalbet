@@ -16,6 +16,8 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  authSuccessNotice: string | null;
+  clearAuthSuccessNotice: () => void;
   login: (token: string, user: User) => void;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -32,6 +34,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('futsalbet_user');
     return saved ? JSON.parse(saved) : null;
   });
+  const [authSuccessNotice, setAuthSuccessNotice] = useState<string | null>(null);
+
+  const clearAuthSuccessNotice = () => setAuthSuccessNotice(null);
 
   const persistUser = (newToken: string | null, newUser: User | null) => {
     if (newToken && newUser) {
@@ -131,10 +136,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Si la URL viene con hash #access_token=... (p.ej. redirección de email de confirmación)
+    if (typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const type = hashParams.get('type');
+
+      if (type === 'signup' || type === 'email_verification' || !type) {
+        setAuthSuccessNotice('¡Email verificado con éxito! Tu cuenta está activada e iniciaste sesión.');
+      }
+
+      // Limpiar el hash para remover los tokens expuestos en la barra de direcciones
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     refreshUser();
 
     const sub = supabase?.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.access_token) {
+      if (
+        (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') &&
+        session?.access_token
+      ) {
         exchangeSupabaseSession(session.access_token).catch(() => {});
       }
       if (event === 'SIGNED_OUT') {
@@ -161,6 +182,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isAuthenticated: !!token && !!user,
         isAdmin: user?.role === 'ADMIN',
+        authSuccessNotice,
+        clearAuthSuccessNotice,
         login,
         logout,
         refreshUser,
