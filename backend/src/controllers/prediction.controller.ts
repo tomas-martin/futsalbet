@@ -49,6 +49,60 @@ export const createPrediction = async (req: AuthRequest, res: Response, next: Ne
   }
 };
 
+const createBatchSchema = z.object({
+  predictions: z.array(createPredictionSchema).min(1, 'Debes enviar al menos un pronóstico'),
+});
+
+export const createBatchPredictions = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { predictions } = createBatchSchema.parse(req.body);
+    const userId = req.user!.id;
+    const now = new Date();
+
+    const matchIds = predictions.map((p) => p.matchId);
+    const matches = await prisma.match.findMany({
+      where: { id: { in: matchIds } },
+    });
+
+    const matchMap = new Map(matches.map((m) => [m.id, m]));
+    const validPredictions = predictions.filter((p) => {
+      const match = matchMap.get(p.matchId);
+      return match && match.status === 'SCHEDULED' && new Date(match.scheduledAt) > now;
+    });
+
+    if (validPredictions.length === 0) {
+      res.status(400).json({ error: 'Ningún partido es válido para enviar pronósticos (pueden haber comenzado o expirado)' });
+      return;
+    }
+
+    const saved = await prisma.$transaction(
+      validPredictions.map((p) =>
+        prisma.prediction.upsert({
+          where: { userId_matchId: { userId, matchId: p.matchId } },
+          create: {
+            userId,
+            matchId: p.matchId,
+            predictedHome: p.predictedHome,
+            predictedAway: p.predictedAway,
+          },
+          update: {
+            predictedHome: p.predictedHome,
+            predictedAway: p.predictedAway,
+          },
+        })
+      )
+    );
+
+    res.status(201).json({
+      message: `Se guardaron ${saved.length} pronósticos correctamente`,
+      count: saved.length,
+      saved,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getMyPredictions = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.id;

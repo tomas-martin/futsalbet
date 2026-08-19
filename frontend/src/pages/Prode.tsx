@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { Target, CheckCircle2, AlertTriangle, Save, LogIn } from 'lucide-react';
+import { Target, CheckCircle2, AlertTriangle, Save, LogIn, CheckCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Prode: React.FC = () => {
@@ -54,6 +54,25 @@ export const Prode: React.FC = () => {
     },
   });
 
+  const batchMutation = useMutation({
+    mutationFn: (payload: { predictions: Array<{ matchId: string; predictedHome: number; predictedAway: number }> }) =>
+      apiClient.post('/predictions/batch', payload),
+    onSuccess: (res, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['prode-matches'] });
+      queryClient.invalidateQueries({ queryKey: ['my-predictions-prode'] });
+      const newSaved: Record<string, boolean> = { ...saved };
+      variables.predictions.forEach((p) => {
+        newSaved[p.matchId] = true;
+      });
+      setSaved(newSaved);
+      setFeedback({ type: 'success', msg: res.data?.message || 'Pronósticos guardados correctamente.' });
+      setTimeout(() => setFeedback(null), 4000);
+    },
+    onError: (err: any) => {
+      setFeedback({ type: 'error', msg: err?.response?.data?.error || 'Error al guardar los pronósticos' });
+    },
+  });
+
   const handleChange = (matchId: string, side: 'home' | 'away', value: string) => {
     const cleanValue = value.replace(/\D/g, '').slice(0, 2);
     setPreds((p) => ({
@@ -85,13 +104,55 @@ export const Prode: React.FC = () => {
     });
   };
 
+  const handleSaveAll = () => {
+    if (!isAuthenticated) {
+      setFeedback({ type: 'error', msg: 'Debes iniciar sesión para guardar pronósticos' });
+      return;
+    }
+
+    if (!matchesData || matchesData.length === 0) return;
+
+    const toSave: Array<{ matchId: string; predictedHome: number; predictedAway: number }> = [];
+
+    matchesData.forEach((m: any) => {
+      const p = preds[m.id];
+      if (p && p.home !== '' && p.away !== '') {
+        toSave.push({
+          matchId: m.id,
+          predictedHome: parseInt(p.home, 10),
+          predictedAway: parseInt(p.away, 10),
+        });
+      }
+    });
+
+    if (toSave.length === 0) {
+      setFeedback({ type: 'error', msg: 'Por favor, completa al menos un resultado (local y visitante) para guardar.' });
+      return;
+    }
+
+    batchMutation.mutate({ predictions: toSave });
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      <div>
-        <h1 className="text-2xl font-black text-white flex items-center gap-2">
-          <Target className="w-6 h-6 text-purple-400" /> Prode del Torneo FSP
-        </h1>
-        <p className="text-xs text-slate-400">Pronosticá el marcador exacto de cada partido. ¡Sumá puntos!</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-white flex items-center gap-2">
+            <Target className="w-6 h-6 text-purple-400" /> Prode del Torneo FSP
+          </h1>
+          <p className="text-xs text-slate-400">Pronosticá el marcador exacto de cada partido. ¡Sumá puntos!</p>
+        </div>
+
+        {matchesData && matchesData.length > 0 && (
+          <button
+            onClick={handleSaveAll}
+            disabled={batchMutation.isPending}
+            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider transition shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+          >
+            <CheckCheck className="w-4 h-4" />
+            <span>{batchMutation.isPending ? 'Guardando todo...' : 'Guardar todos los pronósticos'}</span>
+          </button>
+        )}
       </div>
 
       {/* SCORING RULES */}

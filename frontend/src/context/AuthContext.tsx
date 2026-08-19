@@ -76,7 +76,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     if (!supabase) throw new Error('Supabase no está configurado en el frontend');
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const redirectTo = `${window.location.origin}/login`;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectTo,
+      },
+    });
     if (error) throw error;
 
     if (data.session) {
