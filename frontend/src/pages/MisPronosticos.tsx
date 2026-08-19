@@ -14,8 +14,8 @@ export const MisPronosticos: React.FC = () => {
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [homeScore, setHomeScore] = useState<number | ''>('');
-  const [awayScore, setAwayScore] = useState<number | ''>('');
+  const [homeScore, setHomeScore] = useState<string>('');
+  const [awayScore, setAwayScore] = useState<string>('');
 
   const saveMutation = useMutation({
     mutationFn: (payload: any) => apiClient.post('/predictions', payload),
@@ -35,8 +35,8 @@ export const MisPronosticos: React.FC = () => {
     }
 
     setEditingId(pred.id);
-    setHomeScore(pred.predictedHome ?? 0);
-    setAwayScore(pred.predictedAway ?? 0);
+    setHomeScore(pred.predictedHome !== undefined && pred.predictedHome !== null ? String(pred.predictedHome) : '');
+    setAwayScore(pred.predictedAway !== undefined && pred.predictedAway !== null ? String(pred.predictedAway) : '');
   };
 
   const cancelEdit = () => {
@@ -49,7 +49,7 @@ export const MisPronosticos: React.FC = () => {
     if (homeScore === '' || awayScore === '') return alert('Ingresa ambos marcadores');
     const matchStart = new Date(scheduledAt).getTime();
     if (Date.now() >= matchStart) return alert('No se pueden editar pronósticos después de iniciado el partido');
-    saveMutation.mutate({ matchId, predictedHome: Number(homeScore), predictedAway: Number(awayScore) });
+    saveMutation.mutate({ matchId, predictedHome: parseInt(homeScore, 10), predictedAway: parseInt(awayScore, 10) });
   };
 
   if (!isAuthenticated) {
@@ -138,19 +138,23 @@ export const MisPronosticos: React.FC = () => {
                   {editingId === p.id ? (
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={2}
+                        placeholder="-"
                         value={homeScore}
-                        onChange={(e) => setHomeScore(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="w-12 h-9 bg-slate-950 border border-slate-800 rounded-xl px-1 text-center text-white font-bold"
+                        onChange={(e) => setHomeScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                        className="w-12 h-9 bg-slate-950 border border-slate-800 rounded-xl px-1 text-center text-white font-bold focus:outline-none focus:border-purple-500"
                       />
                       <span className="text-white font-black">-</span>
                       <input
-                        type="number"
-                        min={0}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={2}
+                        placeholder="-"
                         value={awayScore}
-                        onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))}
-                        className="w-12 h-9 bg-slate-950 border border-slate-800 rounded-xl px-1 text-center text-white font-bold"
+                        onChange={(e) => setAwayScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                        className="w-12 h-9 bg-slate-950 border border-slate-800 rounded-xl px-1 text-center text-white font-bold focus:outline-none focus:border-purple-500"
                       />
                       <button
                         onClick={() => submitEdit(p.match.id, p.match.scheduledAt)}

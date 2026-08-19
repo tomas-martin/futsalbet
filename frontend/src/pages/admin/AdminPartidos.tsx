@@ -5,8 +5,8 @@ import { Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const AdminPartidos: React.FC = () => {
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
-  const [homeScore, setHomeScore] = useState<number>(0);
-  const [awayScore, setAwayScore] = useState<number>(0);
+  const [homeScore, setHomeScore] = useState<string>('');
+  const [awayScore, setAwayScore] = useState<string>('');
 
   const [showCreate, setShowCreate] = useState(false);
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
@@ -54,8 +54,8 @@ export const AdminPartidos: React.FC = () => {
 
     try {
       await apiClient.post(`/matches/${selectedMatch.id}/settle`, {
-        homeScore,
-        awayScore,
+        homeScore: parseInt(homeScore || '0', 10),
+        awayScore: parseInt(awayScore || '0', 10),
       });
 
       alert('Partido finalizado y prode puntuado automáticamente');
@@ -121,8 +121,8 @@ export const AdminPartidos: React.FC = () => {
                   <button
                     onClick={() => {
                       setSelectedMatch(m);
-                      setHomeScore(m.homeScore ?? 0);
-                      setAwayScore(m.awayScore ?? 0);
+                      setHomeScore(m.homeScore !== undefined && m.homeScore !== null ? String(m.homeScore) : '');
+                      setAwayScore(m.awayScore !== undefined && m.awayScore !== null ? String(m.awayScore) : '');
                     }}
                     className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
                   >
@@ -229,23 +229,25 @@ export const AdminPartidos: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1 truncate">{selectedMatch.homeTeam?.name}</label>
                   <input
-                    type="number"
-                    min="0"
-                    required
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    placeholder="-"
                     value={homeScore}
-                    onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-black text-white"
+                    onChange={(e) => setHomeScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-black text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1 truncate">{selectedMatch.awayTeam?.name}</label>
                   <input
-                    type="number"
-                    min="0"
-                    required
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    placeholder="-"
                     value={awayScore}
-                    onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-black text-white"
+                    onChange={(e) => setAwayScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-center text-lg font-black text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
               </div>
@@ -318,8 +320,8 @@ const CreateOrEditMatchModal: React.FC<{
   const [venue, setVenue] = useState(initial?.venue ?? '');
   const [round, setRound] = useState(initial?.round ?? '');
   const [status, setStatus] = useState(initial?.status ?? 'SCHEDULED');
-  const [homeScore, setHomeScore] = useState<number>(initial?.homeScore ?? 0);
-  const [awayScore, setAwayScore] = useState<number>(initial?.awayScore ?? 0);
+  const [homeScore, setHomeScore] = useState<string>(initial?.homeScore !== undefined && initial?.homeScore !== null ? String(initial.homeScore) : '');
+  const [awayScore, setAwayScore] = useState<string>(initial?.awayScore !== undefined && initial?.awayScore !== null ? String(initial.awayScore) : '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,8 +339,8 @@ const CreateOrEditMatchModal: React.FC<{
     if (initial) {
       payload.status = status;
       if (status === 'FINISHED') {
-        payload.homeScore = homeScore;
-        payload.awayScore = awayScore;
+        payload.homeScore = parseInt(homeScore || '0', 10);
+        payload.awayScore = parseInt(awayScore || '0', 10);
       }
     }
 
@@ -409,11 +411,27 @@ const CreateOrEditMatchModal: React.FC<{
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-slate-400 font-bold mb-1">Goles Local</label>
-                    <input type="number" min="0" value={homeScore} onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={2}
+                      placeholder="-"
+                      value={homeScore}
+                      onChange={(e) => setHomeScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800 text-center font-bold focus:outline-none focus:border-amber-500"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs text-slate-400 font-bold mb-1">Goles Visitante</label>
-                    <input type="number" min="0" value={awayScore} onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={2}
+                      placeholder="-"
+                      value={awayScore}
+                      onChange={(e) => setAwayScore(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                      className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800 text-center font-bold focus:outline-none focus:border-amber-500"
+                    />
                   </div>
                 </div>
               )}

@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 export const Prode: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
-  const [preds, setPreds] = useState<Record<string, { home: number; away: number }>>({});
+  const [preds, setPreds] = useState<Record<string, { home: string; away: string }>>({});
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
@@ -26,10 +26,13 @@ export const Prode: React.FC = () => {
 
   useEffect(() => {
     if (!myPredictions) return;
-    const initial: Record<string, { home: number; away: number }> = {};
+    const initial: Record<string, { home: string; away: string }> = {};
     myPredictions.forEach((p: any) => {
       if (p.match?.status === 'SCHEDULED') {
-        initial[p.match.id] = { home: p.predictedHome, away: p.predictedAway };
+        initial[p.match.id] = {
+          home: p.predictedHome !== undefined && p.predictedHome !== null ? String(p.predictedHome) : '',
+          away: p.predictedAway !== undefined && p.predictedAway !== null ? String(p.predictedAway) : '',
+        };
       }
     });
     setPreds(initial);
@@ -52,8 +55,14 @@ export const Prode: React.FC = () => {
   });
 
   const handleChange = (matchId: string, side: 'home' | 'away', value: string) => {
-    const n = Math.max(0, parseInt(value || '0') || 0);
-    setPreds((p) => ({ ...p, [matchId]: { home: side === 'home' ? n : p[matchId]?.home ?? 0, away: side === 'away' ? n : p[matchId]?.away ?? 0 } }));
+    const cleanValue = value.replace(/\D/g, '').slice(0, 2);
+    setPreds((p) => ({
+      ...p,
+      [matchId]: {
+        home: side === 'home' ? cleanValue : p[matchId]?.home ?? '',
+        away: side === 'away' ? cleanValue : p[matchId]?.away ?? '',
+      },
+    }));
     setSaved((s) => ({ ...s, [matchId]: false }));
   };
 
@@ -64,12 +73,16 @@ export const Prode: React.FC = () => {
     }
 
     const item = preds[matchId];
-    if (!item) {
-      setFeedback({ type: 'error', msg: 'Ingresa un marcador válido' });
+    if (!item || item.home === '' || item.away === '') {
+      setFeedback({ type: 'error', msg: 'Ingresa un marcador para ambos equipos' });
       return;
     }
 
-    mutation.mutate({ matchId, predictedHome: item.home, predictedAway: item.away });
+    mutation.mutate({
+      matchId,
+      predictedHome: parseInt(item.home, 10),
+      predictedAway: parseInt(item.away, 10),
+    });
   };
 
   return (
@@ -149,20 +162,22 @@ export const Prode: React.FC = () => {
                 {/* SCORE INPUTS */}
                 <div className="flex items-center justify-center gap-2 py-1">
                   <input
-                    type="number"
-                    min={0}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
                     value={preds[m.id]?.home ?? ''}
                     onChange={(e) => handleChange(m.id, 'home', e.target.value)}
-                    placeholder="0"
+                    placeholder="-"
                     className="w-16 h-12 bg-slate-950 border border-slate-800 rounded-2xl px-2 text-center text-lg font-black text-white focus:outline-none focus:border-purple-500 shadow-inner"
                   />
                   <span className="text-purple-400 font-black text-xl px-1">-</span>
                   <input
-                    type="number"
-                    min={0}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
                     value={preds[m.id]?.away ?? ''}
                     onChange={(e) => handleChange(m.id, 'away', e.target.value)}
-                    placeholder="0"
+                    placeholder="-"
                     className="w-16 h-12 bg-slate-950 border border-slate-800 rounded-2xl px-2 text-center text-lg font-black text-white focus:outline-none focus:border-purple-500 shadow-inner"
                   />
                 </div>
