@@ -136,6 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let isHashVerification = false;
+
     // Si la URL viene con hash #access_token=... (p.ej. redirección de email de confirmación)
     if (typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -144,13 +146,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (type === 'signup' || type === 'email_verification' || !type) {
         setAuthSuccessNotice('¡Email verificado con éxito! Tu cuenta está activada e iniciaste sesión.');
       }
-
-      // Limpiar el hash para remover los tokens expuestos en la barra de direcciones
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      isHashVerification = true;
     }
 
     refreshUser();
 
+    // Escuchar cambios de autenticación en Supabase
     const sub = supabase?.auth.onAuthStateChange((event, session) => {
       if (
         (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') &&
@@ -162,6 +163,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         persistUser(null, null);
       }
     });
+
+    // Verificación directa de la sesión de Supabase al montar por si el hash ya fue procesado
+    if (supabase) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data.session?.access_token) {
+          exchangeSupabaseSession(data.session.access_token).catch(() => {});
+        }
+      });
+    }
+
+    // Limpiar el hash de la URL si se procesó la redirección
+    if (isHashVerification) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
 
     return () => {
       sub?.data.subscription.unsubscribe();
