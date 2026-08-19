@@ -45,13 +45,13 @@ export const AdminPredictions: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-white">Predicciones por Partido</h2>
           <p className="text-xs text-slate-400">Selecciona un partido para ver todas las predicciones registradas</p>
         </div>
         <div>
-          <select value={selectedMatch ?? ''} onChange={(e) => setSelectedMatch(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white">
+          <select value={selectedMatch ?? ''} onChange={(e) => setSelectedMatch(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs w-full lg:w-72 max-w-full">
             <option value="">-- Seleccionar Partido --</option>
             {matches?.map((m: any) => (
               <option key={m.id} value={m.id}>{m.homeTeam?.name} vs {m.awayTeam?.name} • {new Date(m.scheduledAt).toLocaleString('es-AR')}</option>

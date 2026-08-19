@@ -20,24 +20,24 @@ export const Header: React.FC = () => {
 
   return (
     <header className="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 md:px-4 h-16 flex items-center justify-between gap-2 md:gap-4">
         {/* LOGO */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30 group-hover:scale-105 transition duration-200 border-2 border-orange-500/40">
+        <Link to="/" className="flex items-center gap-2 group min-w-0">
+          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl overflow-hidden shadow-lg shadow-orange-500/30 group-hover:scale-105 transition duration-200 border-2 border-orange-500/40 shrink-0">
             <img src="/logo.jpg" alt="FutsalBet Logo" className="w-full h-full object-cover" />
           </div>
-          <div>
-            <span className="font-black text-xl tracking-tight bg-gradient-to-r from-white via-orange-100 to-orange-400 bg-clip-text text-transparent">
+          <div className="min-w-0">
+            <span className="font-black text-base md:text-xl tracking-tight bg-gradient-to-r from-white via-orange-100 to-orange-400 bg-clip-text text-transparent whitespace-nowrap">
               FUTSAL<span className="text-orange-500">BET</span>
             </span>
-            <span className="block text-[9px] font-semibold text-orange-400 tracking-wider uppercase leading-none">
+            <span className="hidden sm:block text-[9px] font-semibold text-orange-400 tracking-wider uppercase leading-none">
               FEFUSA Mendoza • Primera FSP
             </span>
           </div>
         </Link>
 
         {/* ACTIONS & USER BAR */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
           {isAuthenticated ? (
             <>
               {/* Admin Button if Admin */}

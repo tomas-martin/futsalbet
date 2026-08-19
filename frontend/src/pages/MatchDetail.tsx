@@ -56,13 +56,13 @@ export const MatchDetail: React.FC = () => {
         <div className="grid grid-cols-3 items-center text-center py-4">
           <div className="flex flex-col items-center gap-2">
             <img src={match.homeTeam.logoUrl} alt="" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-black text-base md:text-xl text-white">{match.homeTeam.name}</span>
+            <span className="font-black text-sm md:text-xl text-white leading-tight break-words px-1">{match.homeTeam.name}</span>
             <span className="text-xs text-slate-500 font-semibold">Local</span>
           </div>
 
           <div className="space-y-2">
             {match.status === 'FINISHED' || match.status === 'LIVE' ? (
-              <div className="text-4xl md:text-6xl font-black text-white bg-slate-950/80 py-3 px-6 rounded-2xl border border-slate-800 inline-block shadow-inner">
+              <div className="text-3xl md:text-6xl font-black text-white bg-slate-950/80 py-2 md:py-3 px-4 md:px-6 rounded-2xl border border-slate-800 inline-block shadow-inner">
                 {match.homeScore} - {match.awayScore}
               </div>
             ) : (
@@ -85,7 +85,7 @@ export const MatchDetail: React.FC = () => {
 
           <div className="flex flex-col items-center gap-2">
             <img src={match.awayTeam.logoUrl} alt="" className="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-lg" />
-            <span className="font-black text-base md:text-xl text-white">{match.awayTeam.name}</span>
+            <span className="font-black text-sm md:text-xl text-white leading-tight break-words px-1">{match.awayTeam.name}</span>
             <span className="text-xs text-slate-500 font-semibold">Visitante</span>
           </div>
         </div>

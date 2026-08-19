@@ -67,58 +67,92 @@ export const TorneoDetail: React.FC = () => {
 
       {/* STANDINGS TABLE */}
       {subTab === 'standings' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-950 text-slate-400 font-extrabold uppercase border-b border-slate-800">
-                  <th className="py-3 px-4 w-12 text-center">POS</th>
-                  <th className="py-3 px-4">EQUIPO</th>
-                  <th className="py-3 px-3 text-center">PJ</th>
-                  <th className="py-3 px-3 text-center">PG</th>
-                  <th className="py-3 px-3 text-center">PE</th>
-                  <th className="py-3 px-3 text-center">PP</th>
-                  <th className="py-3 px-3 text-center">GF</th>
-                  <th className="py-3 px-3 text-center">GC</th>
-                  <th className="py-3 px-3 text-center">DG</th>
-                  <th className="py-3 px-4 text-center font-black text-purple-400">PTS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
-                {standings?.map((s: any, idx: number) => (
-                  <tr key={s.id} className="hover:bg-slate-800/40 transition">
-                    <td className="py-3 px-4 text-center font-bold text-slate-400">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-xs font-black ${
-                        idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                        idx < 4 ? 'bg-purple-600/20 text-purple-300' : 'bg-slate-800 text-slate-400'
-                      }`}>
-                        {idx + 1}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Link to={`/equipos/${s.team.id}`} className="flex items-center gap-3 hover:text-purple-400 transition">
-                        <img src={s.team.logoUrl} alt="" className="w-7 h-7 object-contain" />
-                        <span className="font-bold text-white text-sm">{s.team.name}</span>
-                      </Link>
-                    </td>
-                    <td className="py-3 px-3 text-center text-slate-300 font-bold">{s.played}</td>
-                    <td className="py-3 px-3 text-center text-green-400 font-bold">{s.won}</td>
-                    <td className="py-3 px-3 text-center text-yellow-400 font-bold">{s.drawn}</td>
-                    <td className="py-3 px-3 text-center text-rose-400 font-bold">{s.lost}</td>
-                    <td className="py-3 px-3 text-center text-slate-400">{s.goalsFor}</td>
-                    <td className="py-3 px-3 text-center text-slate-400">{s.goalsAgainst}</td>
-                    <td className="py-3 px-3 text-center font-bold text-slate-300">
-                      {s.goalDiff > 0 ? `+${s.goalDiff}` : s.goalDiff}
-                    </td>
-                    <td className="py-3 px-4 text-center font-black text-purple-400 text-sm bg-purple-950/20">
-                      {s.points}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* MOBILE CARD LIST */}
+          <div className="space-y-3 md:hidden">
+            {standings?.map((s: any, idx: number) => (
+              <div key={s.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black shrink-0 ${
+                    idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                    idx < 4 ? 'bg-purple-600/20 text-purple-300' : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {idx + 1}
+                  </span>
+                  <Link to={`/equipos/${s.team.id}`} className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <img src={s.team.logoUrl} alt="" className="w-7 h-7 object-contain shrink-0" />
+                    <span className="font-bold text-white text-sm truncate">{s.team.name}</span>
+                  </Link>
+                  <span className="font-black text-purple-400 text-lg shrink-0">{s.points}</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-slate-800/70 text-center text-[11px]">
+                  <div><span className="block text-slate-500 font-bold">PJ</span><span className="font-black text-white">{s.played}</span></div>
+                  <div><span className="block text-slate-500 font-bold">PG</span><span className="font-black text-green-400">{s.won}</span></div>
+                  <div><span className="block text-slate-500 font-bold">PE</span><span className="font-black text-yellow-400">{s.drawn}</span></div>
+                  <div><span className="block text-slate-500 font-bold">PP</span><span className="font-black text-rose-400">{s.lost}</span></div>
+                  <div><span className="block text-slate-500 font-bold">GF</span><span className="font-black text-white">{s.goalsFor}</span></div>
+                  <div><span className="block text-slate-500 font-bold">GC</span><span className="font-black text-white">{s.goalsAgainst}</span></div>
+                  <div><span className="block text-slate-500 font-bold">DG</span><span className="font-black text-slate-300">{s.goalDiff > 0 ? `+${s.goalDiff}` : s.goalDiff}</span></div>
+                  <div><span className="block text-slate-500 font-bold">PTS</span><span className="font-black text-purple-400">{s.points}</span></div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* DESKTOP TABLE */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-950 text-slate-400 font-extrabold uppercase border-b border-slate-800">
+                    <th className="py-3 px-4 w-12 text-center">POS</th>
+                    <th className="py-3 px-4">EQUIPO</th>
+                    <th className="py-3 px-3 text-center">PJ</th>
+                    <th className="py-3 px-3 text-center">PG</th>
+                    <th className="py-3 px-3 text-center">PE</th>
+                    <th className="py-3 px-3 text-center">PP</th>
+                    <th className="py-3 px-3 text-center">GF</th>
+                    <th className="py-3 px-3 text-center">GC</th>
+                    <th className="py-3 px-3 text-center">DG</th>
+                    <th className="py-3 px-4 text-center font-black text-purple-400">PTS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-medium">
+                  {standings?.map((s: any, idx: number) => (
+                    <tr key={s.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-4 text-center font-bold text-slate-400">
+                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-xs font-black ${
+                          idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                          idx < 4 ? 'bg-purple-600/20 text-purple-300' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Link to={`/equipos/${s.team.id}`} className="flex items-center gap-3 hover:text-purple-400 transition">
+                          <img src={s.team.logoUrl} alt="" className="w-7 h-7 object-contain" />
+                          <span className="font-bold text-white text-sm">{s.team.name}</span>
+                        </Link>
+                      </td>
+                      <td className="py-3 px-3 text-center text-slate-300 font-bold">{s.played}</td>
+                      <td className="py-3 px-3 text-center text-green-400 font-bold">{s.won}</td>
+                      <td className="py-3 px-3 text-center text-yellow-400 font-bold">{s.drawn}</td>
+                      <td className="py-3 px-3 text-center text-rose-400 font-bold">{s.lost}</td>
+                      <td className="py-3 px-3 text-center text-slate-400">{s.goalsFor}</td>
+                      <td className="py-3 px-3 text-center text-slate-400">{s.goalsAgainst}</td>
+                      <td className="py-3 px-3 text-center font-bold text-slate-300">
+                        {s.goalDiff > 0 ? `+${s.goalDiff}` : s.goalDiff}
+                      </td>
+                      <td className="py-3 px-4 text-center font-black text-purple-400 text-sm bg-purple-950/20">
+                        {s.points}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* FIXTURE */}

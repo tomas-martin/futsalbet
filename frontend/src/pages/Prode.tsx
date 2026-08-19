@@ -106,20 +106,20 @@ export const Prode: React.FC = () => {
           <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl text-slate-400 text-sm">No hay partidos próximos para predecir.</div>
         ) : (
           matchesData.map((m: any) => (
-            <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
-              <div>
+            <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="min-w-0">
                 <div className="font-bold text-white">{m.homeTeam?.name} <span className="text-slate-400">vs</span> {m.awayTeam?.name}</div>
                 <div className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleString('es-AR')}</div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap md:shrink-0">
                 <input
                   type="number"
                   min={0}
                   value={preds[m.id]?.home ?? ''}
                   onChange={(e) => handleChange(m.id, 'home', e.target.value)}
                   placeholder="0"
-                  className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
+                  className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
                 />
                 <span className="text-white font-black">-</span>
                 <input
@@ -128,13 +128,13 @@ export const Prode: React.FC = () => {
                   value={preds[m.id]?.away ?? ''}
                   onChange={(e) => handleChange(m.id, 'away', e.target.value)}
                   placeholder="0"
-                  className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
+                  className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white"
                 />
 
                 <button
                   onClick={() => handleSubmit(m.id)}
                   disabled={mutation.isPending && mutation.variables?.matchId === m.id}
-                  className="ml-4 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold rounded-xl text-xs transition flex items-center gap-1.5"
+                  className="ml-auto md:ml-4 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold rounded-xl text-xs transition flex items-center gap-1.5"
                 >
                   <Save className="w-3.5 h-3.5" />
                   {saved[m.id] ? 'Guardado' : 'Guardar'}

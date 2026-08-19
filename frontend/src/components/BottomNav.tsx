@@ -12,7 +12,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+            `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
               isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -24,7 +24,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/partidos"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+            `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
               isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -36,7 +36,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/prode"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+            `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
               isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -48,7 +48,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/en-vivo"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold relative ${
+            `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold relative ${
               isActive ? 'text-rose-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -60,7 +60,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/leaderboard"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+            `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
               isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -73,7 +73,7 @@ export const BottomNav: React.FC = () => {
           <NavLink
             to="/admin/dashboard"
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+              `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
                 isActive ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'
               }`
             }
@@ -85,7 +85,7 @@ export const BottomNav: React.FC = () => {
           <NavLink
             to="/perfil"
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 py-1 px-3 text-[10px] font-bold ${
+              `flex flex-col items-center gap-1 py-1 px-1.5 sm:px-3 text-[10px] font-bold ${
                 isActive ? 'text-purple-400' : 'text-slate-400 hover:text-slate-200'
               }`
             }

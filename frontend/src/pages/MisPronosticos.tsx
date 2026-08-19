@@ -81,8 +81,8 @@ export const MisPronosticos: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {data.map((p: any) => (
-            <div key={p.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between gap-4">
-              <div>
+            <div key={p.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="min-w-0">
                 <div className="font-bold text-white">{p.match.homeTeam?.name} <span className="text-slate-400">vs</span> {p.match.awayTeam?.name}</div>
                 <div className="text-xs text-slate-400">{new Date(p.match.scheduledAt).toLocaleString('es-AR')}</div>
                 <div className="flex items-center gap-2 mt-2">
@@ -100,22 +100,22 @@ export const MisPronosticos: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap md:shrink-0">
                 {editingId === p.id ? (
                   <>
-                    <input type="number" min={0} value={homeScore} onChange={(e) => setHomeScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
+                    <input type="number" min={0} value={homeScore} onChange={(e) => setHomeScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
                     <span className="text-white font-black">-</span>
-                    <input type="number" min={0} value={awayScore} onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
-                <button onClick={() => submitEdit(p.match.id, p.match.scheduledAt)} className="ml-3 px-3 py-1.5 bg-amber-500 text-slate-900 rounded-xl font-bold text-xs">Guardar</button>
+                    <input type="number" min={0} value={awayScore} onChange={(e) => setAwayScore(e.target.value === '' ? '' : Number(e.target.value))} className="w-14 md:w-16 bg-slate-950 border border-slate-800 rounded-xl px-2 py-1 text-center text-white" />
+                <button onClick={() => submitEdit(p.match.id, p.match.scheduledAt)} className="ml-auto md:ml-3 px-3 py-1.5 bg-amber-500 text-slate-900 rounded-xl font-bold text-xs">Guardar</button>
                     <button onClick={cancelEdit} className="ml-2 px-3 py-1.5 bg-slate-700 text-white rounded-xl font-bold text-xs">Cancelar</button>
                   </>
                 ) : (
                   <>
                     <div className="text-white font-black text-lg">{p.predictedHome} - {p.predictedAway}</div>
                 {(p.match.status === 'SCHEDULED' && Date.now() < new Date(p.match.scheduledAt).getTime()) ? (
-                      <button onClick={() => startEdit(p)} className="ml-4 px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-bold text-xs">Editar</button>
+                      <button onClick={() => startEdit(p)} className="ml-auto md:ml-4 px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-bold text-xs">Editar</button>
                     ) : (
-                      <div className="text-xs text-slate-400 ml-4">No editable</div>
+                      <div className="text-xs text-slate-400 md:ml-4">No editable</div>
                     )}
                   </>
                 )}

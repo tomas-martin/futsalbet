@@ -68,7 +68,7 @@ export const AdminPartidos: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-white flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-400" /> Administración de Partidos y Resultados
@@ -96,72 +96,125 @@ export const AdminPartidos: React.FC = () => {
       {isLoading ? (
         <div className="py-12 text-center text-slate-500 font-bold text-sm">Cargando partidos...</div>
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-950 text-slate-400 font-extrabold uppercase border-b border-slate-800">
-                  <th className="py-3 px-4">PARTIDO</th>
-                  <th className="py-3 px-4">TORNEO</th>
-                  <th className="py-3 px-4">FECHA</th>
-                  <th className="py-3 px-4">ESTADO</th>
-                  <th className="py-3 px-4 text-center">MARCADOR</th>
-                  <th className="py-3 px-4 text-center">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
-                {matchesData?.data?.map((m: any) => (
-                  <tr key={m.id} className="hover:bg-slate-800/40 transition">
-                    <td className="py-3.5 px-4 font-bold text-white">
-                      {m.homeTeam?.name} vs {m.awayTeam?.name}
-                    </td>
-                    <td className="py-3.5 px-4 text-purple-400 font-semibold">{m.tournament?.name}</td>
-                    <td className="py-3.5 px-4 text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
-                        m.status === 'FINISHED' ? 'bg-slate-800 text-slate-300' :
-                        m.status === 'LIVE' ? 'bg-rose-500/20 text-rose-400' : 'bg-purple-500/20 text-purple-400'
-                      }`}>
-                        {m.status}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center font-black text-sm text-white">
-                      {m.status === 'FINISHED' || m.status === 'LIVE' ? `${m.homeScore} - ${m.awayScore}` : '-'}
-                    </td>
-                    <td className="py-3.5 px-4 text-center space-x-2">
-                      {m.status !== 'FINISHED' && (
-                        <button
-                          onClick={() => {
-                            setSelectedMatch(m);
-                            setHomeScore(m.homeScore || 0);
-                            setAwayScore(m.awayScore || 0);
-                          }}
-                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
-                        >
-                          Cargar Resultado
-                        </button>
-                      )}
-
-                      <button
-                        onClick={() => setEditingMatch(m)}
-                        className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        onClick={() => { window.location.href = '/admin/predictions?match=' + m.id; }}
-                        className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition"
-                      >
-                        Ver Predicciones
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <>
+          {/* MOBILE CARD LIST */}
+          <div className="space-y-3 md:hidden">
+            {matchesData?.data?.map((m: any) => (
+              <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="font-bold text-white text-sm">
+                  {m.homeTeam?.name} <span className="text-slate-500 font-semibold">vs</span> {m.awayTeam?.name}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap text-[11px]">
+                  <span className="text-purple-400 font-semibold">{m.tournament?.name}</span>
+                  <span className="text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</span>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                    m.status === 'FINISHED' ? 'bg-slate-800 text-slate-300' :
+                    m.status === 'LIVE' ? 'bg-rose-500/20 text-rose-400' : 'bg-purple-500/20 text-purple-400'
+                  }`}>
+                    {m.status}
+                  </span>
+                  <span className="font-black text-white text-sm ml-auto">
+                    {m.status === 'FINISHED' || m.status === 'LIVE' ? `${m.homeScore} - ${m.awayScore}` : '-'}
+                  </span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {m.status !== 'FINISHED' && (
+                    <button
+                      onClick={() => {
+                        setSelectedMatch(m);
+                        setHomeScore(m.homeScore || 0);
+                        setAwayScore(m.awayScore || 0);
+                      }}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
+                    >
+                      Cargar Resultado
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setEditingMatch(m)}
+                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => { window.location.href = '/admin/predictions?match=' + m.id; }}
+                    className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition"
+                  >
+                    Ver Predicciones
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* DESKTOP TABLE */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-950 text-slate-400 font-extrabold uppercase border-b border-slate-800">
+                    <th className="py-3 px-4">PARTIDO</th>
+                    <th className="py-3 px-4">TORNEO</th>
+                    <th className="py-3 px-4">FECHA</th>
+                    <th className="py-3 px-4">ESTADO</th>
+                    <th className="py-3 px-4 text-center">MARCADOR</th>
+                    <th className="py-3 px-4 text-center">ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-medium">
+                  {matchesData?.data?.map((m: any) => (
+                    <tr key={m.id} className="hover:bg-slate-800/40 transition">
+                      <td className="py-3.5 px-4 font-bold text-white">
+                        {m.homeTeam?.name} vs {m.awayTeam?.name}
+                      </td>
+                      <td className="py-3.5 px-4 text-purple-400 font-semibold">{m.tournament?.name}</td>
+                      <td className="py-3.5 px-4 text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                          m.status === 'FINISHED' ? 'bg-slate-800 text-slate-300' :
+                          m.status === 'LIVE' ? 'bg-rose-500/20 text-rose-400' : 'bg-purple-500/20 text-purple-400'
+                        }`}>
+                          {m.status}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center font-black text-sm text-white">
+                        {m.status === 'FINISHED' || m.status === 'LIVE' ? `${m.homeScore} - ${m.awayScore}` : '-'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center space-x-2">
+                        {m.status !== 'FINISHED' && (
+                          <button
+                            onClick={() => {
+                              setSelectedMatch(m);
+                              setHomeScore(m.homeScore || 0);
+                              setAwayScore(m.awayScore || 0);
+                            }}
+                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
+                          >
+                            Cargar Resultado
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => setEditingMatch(m)}
+                          className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          onClick={() => { window.location.href = '/admin/predictions?match=' + m.id; }}
+                          className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition"
+                        >
+                          Ver Predicciones
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* SETTLE MATCH MODAL */}
