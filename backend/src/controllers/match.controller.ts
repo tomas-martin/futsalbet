@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { updateMatchSchema, createMatchSchema, createMatchEventSchema } from '../validators/schemas';
 import { PredictionSettlementService } from '../services/predictionSettlement.service';
+import { recomputeStandings } from '../services/standing.service';
 import { MatchStatus } from '@prisma/client';
 
 export const getMatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -194,9 +195,11 @@ export const updateMatch = async (req: AuthRequest, res: Response, next: NextFun
     // scratch so points reflect the new result.
     if (match.status === MatchStatus.FINISHED && match.homeScore !== null && match.awayScore !== null) {
       await PredictionSettlementService.resettlePredictions(match.id);
+      await recomputeStandings(match.tournamentId);
     } else if (current.status === MatchStatus.FINISHED && match.status !== MatchStatus.FINISHED) {
       // Match reopened: predictions should go back to PENDING to be re-scored later.
       await PredictionSettlementService.resetPredictions(match.id);
+      await recomputeStandings(match.tournamentId);
     }
 
     await prisma.auditLog.create({
@@ -273,6 +276,7 @@ export const settleMatch = async (req: AuthRequest, res: Response, next: NextFun
 
     // Re-score from scratch: covers both first settlement and result corrections.
     const result = await PredictionSettlementService.resettlePredictions(match.id);
+    await recomputeStandings(match.tournamentId);
 
     await prisma.auditLog.create({
       data: {

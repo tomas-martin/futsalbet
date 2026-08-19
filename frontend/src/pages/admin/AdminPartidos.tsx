@@ -106,7 +106,7 @@ export const AdminPartidos: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 flex-wrap text-[11px]">
                   <span className="text-purple-400 font-semibold">{m.tournament?.name}</span>
-                  <span className="text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</span>
+                  <span className="text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
                     m.status === 'FINISHED' ? 'bg-slate-800 text-slate-300' :
                     m.status === 'LIVE' ? 'bg-rose-500/20 text-rose-400' : 'bg-purple-500/20 text-purple-400'
@@ -166,7 +166,7 @@ export const AdminPartidos: React.FC = () => {
                         {m.homeTeam?.name} vs {m.awayTeam?.name}
                       </td>
                       <td className="py-3.5 px-4 text-purple-400 font-semibold">{m.tournament?.name}</td>
-                      <td className="py-3.5 px-4 text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</td>
+                      <td className="py-3.5 px-4 text-slate-400">{new Date(m.scheduledAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
                           m.status === 'FINISHED' ? 'bg-slate-800 text-slate-300' :

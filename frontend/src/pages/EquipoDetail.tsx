@@ -72,7 +72,7 @@ export const EquipoDetail: React.FC = () => {
             <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
                 <span className="font-bold text-purple-400">{m.tournament?.name}</span>
-                <span>{new Date(m.scheduledAt).toLocaleDateString('es-AR')}</span>
+                <span>{new Date(m.scheduledAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
               </div>
               <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-2">

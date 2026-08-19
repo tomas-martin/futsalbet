@@ -109,7 +109,7 @@ export const Prode: React.FC = () => {
             <div key={m.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
               <div className="min-w-0">
                 <div className="font-bold text-white">{m.homeTeam?.name} <span className="text-slate-400">vs</span> {m.awayTeam?.name}</div>
-                <div className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleString('es-AR')}</div>
+                <div className="text-xs text-slate-400">{new Date(m.scheduledAt).toLocaleString('es-AR', { hour12: false })}</div>
               </div>
 
               <div className="flex items-center gap-3 flex-wrap md:shrink-0">

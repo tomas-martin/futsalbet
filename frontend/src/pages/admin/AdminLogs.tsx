@@ -33,6 +33,7 @@ export const AdminLogs: React.FC = () => {
                       month: 'short',
                       hour: '2-digit',
                       minute: '2-digit',
+                      hour12: false,
                     })}
                   </span>
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
@@ -70,6 +71,7 @@ export const AdminLogs: React.FC = () => {
                           month: 'short',
                           hour: '2-digit',
                           minute: '2-digit',
+                          hour12: false,
                         })}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-white">{log.user?.email || 'Sistema'}</td>

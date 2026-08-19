@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import prisma from '../config/database';
 import { MatchStatus, Prisma, Team } from '@prisma/client';
 import { PredictionSettlementService } from './predictionSettlement.service';
+import { recomputeStandings } from './standing.service';
 
 const SCOREFY_BASE = 'https://scorefy.app';
 const SCOREFY_CDN = 'https://cdn.scorefy.app';
@@ -477,6 +478,10 @@ export async function syncFromScorefy(): Promise<{
         stats.predictionsSettled += settlement.settled;
       }
     }
+
+    // Recompute the table from the finished matches so it stays in sync even
+    // when the scraped standings page lags behind the loaded results.
+    stats.standingsUpdated = await recomputeStandings(tournament.id);
 
     const message = `Sync completed: ${stats.standingsUpdated} standings, ${stats.fixturesUpdated} fixture updates, ${stats.resultsUpdated} result updates, ${stats.matchesCreated} new matches, ${stats.predictionsSettled} predictions settled`;
     console.log(message, stats);

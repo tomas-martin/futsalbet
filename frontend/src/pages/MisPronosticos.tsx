@@ -84,7 +84,7 @@ export const MisPronosticos: React.FC = () => {
             <div key={p.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
               <div className="min-w-0">
                 <div className="font-bold text-white">{p.match.homeTeam?.name} <span className="text-slate-400">vs</span> {p.match.awayTeam?.name}</div>
-                <div className="text-xs text-slate-400">{new Date(p.match.scheduledAt).toLocaleString('es-AR')}</div>
+                <div className="text-xs text-slate-400">{new Date(p.match.scheduledAt).toLocaleString('es-AR', { hour12: false })}</div>
                 <div className="flex items-center gap-2 mt-2">
                   {p.result === 'PENDING' ? (
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">PENDIENTE</span>

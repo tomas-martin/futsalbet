@@ -76,6 +76,7 @@ export const MatchDetail: React.FC = () => {
                 month: 'long',
                 hour: '2-digit',
                 minute: '2-digit',
+                hour12: false,
               })}
             </p>
             <p className="text-xs text-slate-500 flex items-center justify-center gap-1">

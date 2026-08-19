@@ -54,7 +54,7 @@ export const AdminPredictions: React.FC = () => {
           <select value={selectedMatch ?? ''} onChange={(e) => setSelectedMatch(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs w-full lg:w-72 max-w-full">
             <option value="">-- Seleccionar Partido --</option>
             {matches?.map((m: any) => (
-              <option key={m.id} value={m.id}>{m.homeTeam?.name} vs {m.awayTeam?.name} • {new Date(m.scheduledAt).toLocaleString('es-AR')}</option>
+              <option key={m.id} value={m.id}>{m.homeTeam?.name} vs {m.awayTeam?.name} • {new Date(m.scheduledAt).toLocaleString('es-AR', { hour12: false })}</option>
             ))}
           </select>
         </div>
@@ -94,7 +94,7 @@ export const AdminPredictions: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="text-xs text-slate-400">Enviado: {new Date(p.createdAt).toLocaleString('es-AR')}</div>
+                <div className="text-xs text-slate-400">Enviado: {new Date(p.createdAt).toLocaleString('es-AR', { hour12: false })}</div>
                 <button onClick={() => { if (confirm('Eliminar pronóstico?')) deleteMutation.mutate(p.id); }} className="px-3 py-1 bg-rose-500 text-white rounded-xl text-xs">Eliminar</button>
               </div>
             </div>
