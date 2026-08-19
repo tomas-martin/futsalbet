@@ -5,12 +5,16 @@ export const supabaseAuthSchema = z.object({
 });
 
 export const updateMatchSchema = z.object({
+  tournamentId: z.string().min(1).optional(),
+  homeTeamId: z.string().min(1).optional(),
+  awayTeamId: z.string().min(1).optional(),
+  scheduledAt: z.string().datetime().optional(),
+  venue: z.string().optional(),
+  round: z.string().optional(),
   status: z.enum(['SCHEDULED', 'LIVE', 'FINISHED', 'CANCELLED', 'POSTPONED']).optional(),
   homeScore: z.number().int().min(0).optional(),
   awayScore: z.number().int().min(0).optional(),
   minute: z.number().int().min(0).max(90).optional(),
-  venue: z.string().optional(),
-  scheduledAt: z.string().datetime().optional(),
 });
 
 export const createMatchSchema = z.object({

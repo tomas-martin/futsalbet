@@ -16,6 +16,38 @@ export class PredictionSettlementService {
    * Score all pending prode predictions for a finished match.
    * Exact score = 6 points, correct winner/draw = 3 points, otherwise 0.
    */
+  /**
+   * Reset all predictions for a match to PENDING (no points). Used when a
+   * finished match is reopened so predictions can be re-scored later.
+   */
+  static async resetPredictions(matchId: string): Promise<void> {
+    await prisma.prediction.updateMany({
+      where: { matchId },
+      data: { result: SelectionResult.PENDING, pointsEarned: 0, settledAt: null },
+    });
+  }
+
+  /**
+   * Reset all predictions for a match to PENDING and re-score them against the
+   * current result. Used when an admin corrects the score of an already
+   * finished/settled match so the prode points stay in sync.
+   */
+  static async resettlePredictions(matchId: string): Promise<PredictionSettlementResult> {
+    const match = await prisma.match.findUnique({ where: { id: matchId } });
+    if (
+      !match ||
+      match.status !== MatchStatus.FINISHED ||
+      match.homeScore === null ||
+      match.awayScore === null
+    ) {
+      return { settled: 0, won: 0, exact: 0, totalPoints: 0 };
+    }
+
+    await this.resetPredictions(matchId);
+
+    return this.settlePredictions(matchId);
+  }
+
   static async settlePredictions(matchId: string): Promise<PredictionSettlementResult> {
     const match = await prisma.match.findUnique({ where: { id: matchId } });
     if (

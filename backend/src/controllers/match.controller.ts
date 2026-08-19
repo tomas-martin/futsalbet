@@ -169,11 +169,20 @@ export const updateMatch = async (req: AuthRequest, res: Response, next: NextFun
   try {
     const data = updateMatchSchema.parse(req.body);
 
+    const current = await prisma.match.findUnique({ where: { id: req.params.id } });
+    if (!current) {
+      res.status(404).json({ error: 'Partido no encontrado' });
+      return;
+    }
+
+    const keepScore = data.status === undefined || data.status === MatchStatus.FINISHED || data.status === MatchStatus.LIVE;
+
     const match = await prisma.match.update({
       where: { id: req.params.id },
       data: {
         ...data,
         ...(data.scheduledAt && { scheduledAt: new Date(data.scheduledAt) }),
+        ...(!keepScore && { homeScore: null, awayScore: null, minute: null }),
       },
       include: {
         homeTeam: true,
@@ -181,10 +190,39 @@ export const updateMatch = async (req: AuthRequest, res: Response, next: NextFun
       },
     });
 
-    // Al finalizar con resultado, puntuar el prode automáticamente.
+    // If a finished match has its score corrected, re-score the prode from
+    // scratch so points reflect the new result.
     if (match.status === MatchStatus.FINISHED && match.homeScore !== null && match.awayScore !== null) {
-      await PredictionSettlementService.settlePredictions(match.id);
+      await PredictionSettlementService.resettlePredictions(match.id);
+    } else if (current.status === MatchStatus.FINISHED && match.status !== MatchStatus.FINISHED) {
+      // Match reopened: predictions should go back to PENDING to be re-scored later.
+      await PredictionSettlementService.resetPredictions(match.id);
     }
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: 'UPDATE_MATCH',
+        entity: 'Match',
+        entityId: match.id,
+        oldData: {
+          scheduledAt: current.scheduledAt,
+          status: current.status,
+          homeScore: current.homeScore,
+          awayScore: current.awayScore,
+          venue: current.venue,
+          round: current.round,
+        },
+        newData: {
+          scheduledAt: match.scheduledAt,
+          status: match.status,
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+          venue: match.venue,
+          round: match.round,
+        },
+      },
+    });
 
     res.json({ message: 'Partido actualizado', match });
   } catch (error) {
@@ -218,6 +256,12 @@ export const settleMatch = async (req: AuthRequest, res: Response, next: NextFun
       return;
     }
 
+    const current = await prisma.match.findUnique({ where: { id: req.params.id } });
+    if (!current) {
+      res.status(404).json({ error: 'Partido no encontrado' });
+      return;
+    }
+
     const match = await prisma.match.update({
       where: { id: req.params.id },
       data: {
@@ -227,7 +271,19 @@ export const settleMatch = async (req: AuthRequest, res: Response, next: NextFun
       },
     });
 
-    const result = await PredictionSettlementService.settlePredictions(match.id);
+    // Re-score from scratch: covers both first settlement and result corrections.
+    const result = await PredictionSettlementService.resettlePredictions(match.id);
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: 'SETTLE_MATCH',
+        entity: 'Match',
+        entityId: match.id,
+        oldData: { status: current.status, homeScore: current.homeScore, awayScore: current.awayScore },
+        newData: { status: match.status, homeScore: match.homeScore, awayScore: match.awayScore },
+      },
+    });
 
     res.json({
       message: 'Partido finalizado y prode puntuado',

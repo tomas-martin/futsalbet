@@ -118,18 +118,16 @@ export const AdminPartidos: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {m.status !== 'FINISHED' && (
-                    <button
-                      onClick={() => {
-                        setSelectedMatch(m);
-                        setHomeScore(m.homeScore || 0);
-                        setAwayScore(m.awayScore || 0);
-                      }}
-                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
-                    >
-                      Cargar Resultado
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedMatch(m);
+                      setHomeScore(m.homeScore ?? 0);
+                      setAwayScore(m.awayScore ?? 0);
+                    }}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
+                  >
+                    {m.status === 'FINISHED' ? 'Modificar Resultado' : 'Cargar Resultado'}
+                  </button>
                   <button
                     onClick={() => setEditingMatch(m)}
                     className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition"
@@ -181,18 +179,16 @@ export const AdminPartidos: React.FC = () => {
                         {m.status === 'FINISHED' || m.status === 'LIVE' ? `${m.homeScore} - ${m.awayScore}` : '-'}
                       </td>
                       <td className="py-3.5 px-4 text-center space-x-2">
-                        {m.status !== 'FINISHED' && (
-                          <button
-                            onClick={() => {
-                              setSelectedMatch(m);
-                              setHomeScore(m.homeScore || 0);
-                              setAwayScore(m.awayScore || 0);
-                            }}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
-                          >
-                            Cargar Resultado
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            setSelectedMatch(m);
+                            setHomeScore(m.homeScore ?? 0);
+                            setAwayScore(m.awayScore ?? 0);
+                          }}
+                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-xl text-xs transition"
+                        >
+                          {m.status === 'FINISHED' ? 'Modificar Resultado' : 'Cargar Resultado'}
+                        </button>
 
                         <button
                           onClick={() => setEditingMatch(m)}
@@ -221,7 +217,9 @@ export const AdminPartidos: React.FC = () => {
       {selectedMatch && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-4">
-            <h3 className="font-black text-lg text-white">Finalizar Partido</h3>
+            <h3 className="font-black text-lg text-white">
+              {selectedMatch.status === 'FINISHED' ? 'Modificar Resultado' : 'Finalizar Partido'}
+            </h3>
             <p className="text-xs text-slate-400 font-bold">
               {selectedMatch.homeTeam?.name} vs {selectedMatch.awayTeam?.name}
             </p>
@@ -253,7 +251,7 @@ export const AdminPartidos: React.FC = () => {
               </div>
 
               <div className="p-3 bg-purple-950/40 border border-purple-800/40 rounded-xl text-[11px] text-purple-300">
-                Al confirmar, el estado cambiará a <strong>FINISHED</strong> y se puntuarán todos los pronósticos automáticamente.
+                Al confirmar, el estado cambiará a <strong>FINISHED</strong> y el prode se volverá a puntuar con el nuevo marcador.
               </div>
 
               <div className="flex gap-2">
@@ -319,6 +317,9 @@ const CreateOrEditMatchModal: React.FC<{
   });
   const [venue, setVenue] = useState(initial?.venue ?? '');
   const [round, setRound] = useState(initial?.round ?? '');
+  const [status, setStatus] = useState(initial?.status ?? 'SCHEDULED');
+  const [homeScore, setHomeScore] = useState<number>(initial?.homeScore ?? 0);
+  const [awayScore, setAwayScore] = useState<number>(initial?.awayScore ?? 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,6 +333,14 @@ const CreateOrEditMatchModal: React.FC<{
       venue,
       round,
     };
+
+    if (initial) {
+      payload.status = status;
+      if (status === 'FINISHED') {
+        payload.homeScore = homeScore;
+        payload.awayScore = awayScore;
+      }
+    }
 
     onSave(payload);
   };
@@ -384,6 +393,36 @@ const CreateOrEditMatchModal: React.FC<{
             <label className="block text-xs text-slate-400 font-bold mb-1">Ronda (opcional)</label>
             <input value={round} onChange={(e) => setRound(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
           </div>
+
+          {initial && (
+            <>
+              <div>
+                <label className="block text-xs text-slate-400 font-bold mb-1">Estado</label>
+                <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800">
+                  {['SCHEDULED', 'LIVE', 'FINISHED', 'CANCELLED', 'POSTPONED'].map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              {status === 'FINISHED' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 font-bold mb-1">Goles Local</label>
+                    <input type="number" min="0" value={homeScore} onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 font-bold mb-1">Goles Visitante</label>
+                    <input type="number" min="0" value={awayScore} onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)} className="w-full bg-slate-950 text-white rounded-xl px-3 py-2 border border-slate-800" />
+                  </div>
+                </div>
+              )}
+
+              <div className="p-2 bg-purple-950/40 border border-purple-800/40 rounded-xl text-[10px] text-purple-300">
+                Si cambias el marcador de un partido FINISHED, el prode se vuelve a puntuar automáticamente.
+              </div>
+            </>
+          )}
 
           <div className="flex gap-2 mt-2">
             <button type="button" onClick={onClose} className="w-1/2 py-2.5 bg-slate-800 text-slate-300 rounded-xl font-bold text-xs">Cancelar</button>
