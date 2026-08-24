@@ -7,6 +7,7 @@ import { CheckCircle2, X } from 'lucide-react';
 import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
+import { Footer } from './components/Footer';
 
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
@@ -110,6 +111,7 @@ const AppLayout: React.FC = () => {
           </Routes>
         </main>
 
+        <Footer />
         <BottomNav />
       </div>
     </BrowserRouter>
