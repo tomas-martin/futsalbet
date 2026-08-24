@@ -25,6 +25,7 @@ import { Ayuda } from './pages/Ayuda';
 import { Prode } from './pages/Prode';
 import { Leaderboard } from './pages/Leaderboard';
 import { MisPronosticos } from './pages/MisPronosticos';
+import { Grupos } from './pages/Grupos';
 
 import { AdminLayout } from './pages/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -86,6 +87,7 @@ const AppLayout: React.FC = () => {
             <Route path="/equipos/:id" element={<EquipoDetail />} />
             <Route path="/prode" element={<Prode />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/grupos" element={<Grupos />} />
             <Route path="/ayuda" element={<Ayuda />} />
 
             {/* Authenticated user routes */}

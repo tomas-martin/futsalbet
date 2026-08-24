@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Calendar, Radio, Target, Star, User, Shield } from 'lucide-react';
+import { Home, Calendar, Radio, Target, Star, User, Shield, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const BottomNav: React.FC = () => {
@@ -12,7 +12,7 @@ export const BottomNav: React.FC = () => {
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[56px] ${
+            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[50px] ${
               isActive ? 'text-purple-400 bg-purple-500/10' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -22,21 +22,9 @@ export const BottomNav: React.FC = () => {
         </NavLink>
 
         <NavLink
-          to="/partidos"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[56px] ${
-              isActive ? 'text-purple-400 bg-purple-500/10' : 'text-slate-400 hover:text-slate-200'
-            }`
-          }
-        >
-          <Calendar className="w-5 h-5" />
-          <span>Partidos</span>
-        </NavLink>
-
-        <NavLink
           to="/prode"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[56px] ${
+            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[50px] ${
               isActive ? 'text-purple-400 bg-purple-500/15 border border-purple-500/20' : 'text-slate-400 hover:text-slate-200'
             }`
           }
@@ -46,27 +34,27 @@ export const BottomNav: React.FC = () => {
         </NavLink>
 
         <NavLink
-          to="/en-vivo"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[56px] ${
-              isActive ? 'text-rose-400 bg-rose-500/10' : 'text-slate-400 hover:text-slate-200'
-            }`
-          }
-        >
-          <Radio className="w-5 h-5 text-rose-500 animate-pulse" />
-          <span>En Vivo</span>
-        </NavLink>
-
-        <NavLink
           to="/leaderboard"
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[56px] ${
+            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[50px] ${
               isActive ? 'text-yellow-400 bg-yellow-500/10' : 'text-slate-400 hover:text-slate-200'
             }`
           }
         >
           <Star className="w-5 h-5 text-yellow-400" />
-          <span>Tabla</span>
+          <span>General</span>
+        </NavLink>
+
+        <NavLink
+          to="/grupos"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-1 py-1 px-2 rounded-xl text-[10px] font-extrabold transition min-w-[50px] ${
+              isActive ? 'text-purple-400 bg-purple-500/10' : 'text-slate-400 hover:text-slate-200'
+            }`
+          }
+        >
+          <Users className="w-5 h-5 text-purple-400" />
+          <span>Grupos</span>
         </NavLink>
 
         {isAdmin ? (

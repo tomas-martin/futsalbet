@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../api/client';
-import { Target, Trophy, UserRound } from 'lucide-react';
+import { Target, Trophy, UserRound, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Leaderboard: React.FC = () => {
   const [selectedTournament, setSelectedTournament] = useState<string | null>(null);
@@ -34,17 +35,26 @@ export const Leaderboard: React.FC = () => {
           <p className="text-xs text-slate-400">Ranking por aciertos de pronósticos del torneo seleccionado</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
-          <label className="text-xs text-slate-400 font-bold shrink-0">Torneo:</label>
-          <select
-            value={selectedTournament ?? ''}
-            onChange={(e) => setSelectedTournament(e.target.value)}
-            className="bg-slate-950 text-xs sm:text-sm text-white rounded-xl px-3 py-1.5 border border-slate-800 focus:outline-none focus:border-purple-500 w-full sm:w-auto truncate"
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <Link
+            to="/grupos"
+            className="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl flex items-center gap-1.5 transition shadow-lg shrink-0"
           >
-            {tournaments?.map((t: any) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+            <Users className="w-4 h-4" /> Grupos Privados
+          </Link>
+
+          <div className="bg-slate-900 border border-slate-800 p-2 rounded-2xl flex items-center justify-between sm:justify-start gap-2 flex-1 sm:flex-initial">
+            <label className="text-xs text-slate-400 font-bold shrink-0">Torneo:</label>
+            <select
+              value={selectedTournament ?? ''}
+              onChange={(e) => setSelectedTournament(e.target.value)}
+              className="bg-slate-950 text-xs sm:text-sm text-white rounded-xl px-3 py-1.5 border border-slate-800 focus:outline-none focus:border-purple-500 w-full sm:w-auto truncate"
+            >
+              {tournaments?.map((t: any) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

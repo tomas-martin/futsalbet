@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Target,
   Star,
-  Home
+  Home,
+  Users
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 
@@ -43,7 +44,8 @@ export const Header: React.FC = () => {
     { to: '/resultados', label: 'Resultados', icon: Award },
     { to: '/torneos', label: 'Torneos', icon: Trophy },
     { to: '/equipos', label: 'Equipos', icon: ShieldAlert },
-    { to: '/leaderboard', label: 'Tabla Prode', icon: Star },
+    { to: '/leaderboard', label: 'Tabla General', icon: Star },
+    { to: '/grupos', label: 'Grupos Privados', icon: Users },
     { to: '/ayuda', label: 'Ayuda', icon: HelpCircle },
   ];
 
@@ -148,7 +150,14 @@ export const Header: React.FC = () => {
                         onClick={() => setMenuOpen(false)}
                         className="px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 flex items-center gap-2.5"
                       >
-                        <Star className="w-4 h-4 text-yellow-400" /> Tabla del Prode
+                        <Star className="w-4 h-4 text-yellow-400" /> Tabla General
+                      </Link>
+                      <Link
+                        to="/grupos"
+                        onClick={() => setMenuOpen(false)}
+                        className="px-4 py-2.5 text-xs font-semibold text-purple-300 hover:bg-slate-800 flex items-center gap-2.5"
+                      >
+                        <Users className="w-4 h-4 text-purple-400" /> Grupos Privados
                       </Link>
                       {isAdmin && (
                         <Link

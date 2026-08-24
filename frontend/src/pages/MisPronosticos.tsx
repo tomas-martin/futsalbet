@@ -134,7 +134,7 @@ export const MisPronosticos: React.FC = () => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                   {editingId === p.id ? (
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                       <input
@@ -171,18 +171,36 @@ export const MisPronosticos: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="text-white font-black text-base sm:text-lg bg-slate-950 px-3 py-1 rounded-xl border border-slate-800">
-                        {p.predictedHome} - {p.predictedAway}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Tu Pronóstico */}
+                        <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Pronóstico:</span>
+                          <span className="text-white font-black text-sm">{p.predictedHome} - {p.predictedAway}</span>
+                        </div>
+
+                        {/* Resultado Real */}
+                        {p.match.homeScore !== null && p.match.awayScore !== null ? (
+                          <div className="flex items-center gap-1.5 bg-purple-950/50 px-3 py-1.5 rounded-xl border border-purple-800/60 shadow-inner">
+                            <span className="text-[10px] text-purple-300 font-bold uppercase">Resultado Real:</span>
+                            <span className="text-purple-200 font-black text-sm">{p.match.homeScore} - {p.match.awayScore}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 bg-slate-950/40 px-3 py-1.5 rounded-xl border border-slate-800/40">
+                            <span className="text-[10px] text-slate-500 font-bold uppercase">Resultado Real:</span>
+                            <span className="text-slate-500 font-semibold text-xs">Sin definir</span>
+                          </div>
+                        )}
                       </div>
+
                       {(p.match.status === 'SCHEDULED' && Date.now() < new Date(p.match.scheduledAt).getTime()) ? (
                         <button
                           onClick={() => startEdit(p)}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition"
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition shrink-0"
                         >
                           Editar
                         </button>
                       ) : (
-                        <span className="text-[11px] text-slate-500 font-semibold">Bloqueado</span>
+                        <span className="text-[11px] text-slate-500 font-semibold shrink-0">Bloqueado</span>
                       )}
                     </>
                   )}

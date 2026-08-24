@@ -16,6 +16,7 @@ import { notificationRouter } from './routes/notification.routes';
 import { adminRouter } from './routes/admin.routes';
 import { syncRouter } from './routes/sync.routes';
 import { predictionRouter } from './routes/prediction.routes';
+import { groupRouter } from './routes/group.routes';
 import { errorHandler } from './middlewares/error.middleware';
 import { startCronJobs } from './utils/cron';
 
@@ -109,6 +110,7 @@ app.use('/api/ranking', rankingRouter);
 app.use('/api/favorites', favoriteRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/predictions', predictionRouter);
+app.use('/api/groups', groupRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/sync', syncRouter);
 
