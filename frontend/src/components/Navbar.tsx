@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Trophy, Calendar, Radio, Award, ShieldAlert, HelpCircle, Target, Star, Users } from 'lucide-react';
+import { Trophy, Calendar, Radio, Award, ShieldAlert, HelpCircle, Target, Star, Users, BookOpen } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const navItems = [
@@ -13,6 +13,7 @@ export const Navbar: React.FC = () => {
     { to: '/equipos', label: 'Equipos', icon: ShieldAlert },
     { to: '/leaderboard', label: 'Tabla General', icon: Star },
     { to: '/grupos', label: 'Grupos Privados', icon: Users },
+    { to: '/manual', label: 'Manual', icon: BookOpen },
     { to: '/ayuda', label: 'Ayuda', icon: HelpCircle },
   ];
 

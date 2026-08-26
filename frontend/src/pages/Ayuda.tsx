@@ -1,5 +1,6 @@
 import React from 'react';
-import { HelpCircle, ShieldCheck, Target, Trophy, Lock, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HelpCircle, ShieldCheck, Target, Trophy, Lock, CheckCircle2, BookOpen, ArrowRight } from 'lucide-react';
 
 export const Ayuda: React.FC = () => {
   const faqs = [
@@ -37,6 +38,26 @@ export const Ayuda: React.FC = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
+      {/* BANNER MANUAL DE USUARIO */}
+      <div className="bg-gradient-to-r from-purple-900/60 via-slate-900 to-indigo-900/60 border border-purple-500/40 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-3 text-center sm:text-left">
+          <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/40 text-purple-300 flex items-center justify-center shrink-0">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-white">¿Buscas una guía paso a paso?</h3>
+            <p className="text-xs text-slate-300">Consulta el Manual de Usuario completo para jugadores y administradores.</p>
+          </div>
+        </div>
+        <Link
+          to="/manual"
+          className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-purple-600/30 shrink-0"
+        >
+          <span>Ver Manual Interactivo</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+
       <div className="text-center space-y-2">
         <div className="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-400 flex items-center justify-center mx-auto mb-2">
           <HelpCircle className="w-6 h-6" />

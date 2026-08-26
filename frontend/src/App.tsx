@@ -23,6 +23,7 @@ import { EquipoDetail } from './pages/EquipoDetail';
 import { Perfil } from './pages/Perfil';
 import { Favoritos } from './pages/Favoritos';
 import { Ayuda } from './pages/Ayuda';
+import { Manual } from './pages/Manual';
 import { Prode } from './pages/Prode';
 import { Leaderboard } from './pages/Leaderboard';
 import { MisPronosticos } from './pages/MisPronosticos';
@@ -90,6 +91,7 @@ const AppLayout: React.FC = () => {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/grupos" element={<Grupos />} />
             <Route path="/ayuda" element={<Ayuda />} />
+            <Route path="/manual" element={<Manual />} />
 
             {/* Authenticated user routes */}
             <Route path="/perfil" element={<Perfil />} />

@@ -17,7 +17,8 @@ import {
   Target,
   Star,
   Home,
-  Users
+  Users,
+  BookOpen
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 
@@ -46,6 +47,7 @@ export const Header: React.FC = () => {
     { to: '/equipos', label: 'Equipos', icon: ShieldAlert },
     { to: '/leaderboard', label: 'Tabla General', icon: Star },
     { to: '/grupos', label: 'Grupos Privados', icon: Users },
+    { to: '/manual', label: 'Manual de Usuario', icon: BookOpen },
     { to: '/ayuda', label: 'Ayuda', icon: HelpCircle },
   ];
 
