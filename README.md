@@ -1,11 +1,11 @@
-# FutsalBet — Plataforma Recreativa de Pronósticos de Futsal
+# FutsalBet — Plataforma Recreativa de Prode de Futsal
 
-[![Puntos Virtuales](https://img.shields.io/badge/Plataforma-Recreativa-7a5af8.svg)](https://futsalbet.com)
+[![Prode Recreativo](https://img.shields.io/badge/Plataforma-Prode--Recreativo-7a5af8.svg)](https://futsalbet.com)
 [![Licencia](https://img.shields.io/badge/Licencia-MIT-green.svg)](LICENSE)
 
-Plataforma completa de pronósticos deportivos y apuestas recreativas enfocada en el futsal de **Mendoza, Argentina** (FEFUSA Mendoza).
+Plataforma completa de pronósticos deportivos (Prode) enfocada en el futsal de **Mendoza, Argentina** (FEFUSA Mendoza).
 
-> ⚠️ **IMPORTANTE:** Esta plataforma utiliza **EXCLUSIVAMENTE PUNTOS VIRTUALES**. No contiene dinero real, ni Mercado Pago, ni tarjetas de crédito, ni transferencias bancarias, ni depósitos, ni retiros. Es un sistema 100% recreativo.
+> ⚠️ **IMPORTANTE:** Esta plataforma es un **SISTEMA DE PRODE 100% RECREATIVO**. No contiene dinero real, ni Mercado Pago, ni apuestas monetarias, ni tarjetas de crédito, ni transferencias bancarias. El único fin es pronosticar marcadores exactos y competir en la tabla de posiciones con amigos y aficionados.
 
 ---
 
@@ -17,7 +17,7 @@ Puedes levantar todo el stack (PostgreSQL + Backend Express + Frontend React + N
 docker compose up --build
 ```
 
-- **Frontend:** [http://localhost:5173](http://localhost:5173) (o port 80 en contenedor)
+- **Frontend:** [http://localhost:5173](http://localhost:5173) (o puerto 80 en contenedor)
 - **Backend API:** [http://localhost:3000](http://localhost:3000)
 - **PostgreSQL:** `localhost:5432`
 
@@ -33,7 +33,7 @@ docker compose up --build
 ### 2. Usuario Normal de Prueba
 - **Email:** `usuario@futsalbet.com`
 - **Contraseña:** `User123!`
-- **Rol:** `USER` (Comienza con **1000 PUNTOS VIRTUALES**)
+- **Rol:** `USER`
 
 ---
 
@@ -46,24 +46,23 @@ Accede con el usuario **ADMIN** y dirígete al menú `/admin`. En el panel de co
 1. En `/admin/partidos`, haz clic en **"Crear Partido"** o selecciona un partido de la lista.
 2. Puedes modificar la fecha, hora, equipos y estado (`SCHEDULED`, `LIVE`, `FINISHED`).
 
-### 3. Cómo modificar cuotas virtuales
-1. Ingresa a `/admin/cuotas`.
-2. Selecciona un partido próximo de la lista desplegable.
-3. Edita la cuota deseada (ej: cambiar cuota de Godoy Cruz de `1.80` a `2.10`).
-4. Al guardar, el cambio queda registrado en la tabla `AuditLog`.
-
-### 4. Cómo realizar un pronóstico (Apuesta recreativa)
+### 3. Cómo realizar un pronóstico en el Prode
 1. Inicia sesión como **Usuario Normal** (`usuario@futsalbet.com`).
-2. Navega por los partidos y haz clic en la cuota de tu elección (Ganador, Doble Oportunidad, Más/Menos goles, etc.).
-3. Se abrirá la **Boleta de Pronósticos** (BetSlip) a la derecha.
-4. Si seleccionas opciones de múltiples partidos, las cuotas se multiplicarán automáticamente en una **Apuesta Combinada**.
-5. Ingresa el monto de puntos virtuales a apostar y haz clic en **"CONFIRMAR PRONÓSTICO"**.
+2. Navega a la sección **Prode** o **Partidos**.
+3. Ingresa la cantidad de goles para el equipo Local y el equipo Visitante en los partidos programados.
+4. Haz clic en **"Guardar Pronóstico"** en un partido o en **"Guardar todos los pronósticos"**.
+5. Puedes modificar tus predicciones hasta el momento exacto del inicio del partido.
 
-### 5. Cómo resolver una apuesta automáticamente
+### 4. Reglas de Puntuación
+- **6 Puntos:** Acierto exacto del marcador (ej: dijiste 3-1 y el partido terminó 3-1).
+- **3 Puntos:** Acierto del ganador o empate (ej: dijiste 2-0 y el partido terminó 4-1).
+- **0 Puntos:** Pronóstico no acertado.
+
+### 5. Cómo resolver partidos automáticamente (ADMIN)
 1. Ingresa como **ADMIN** a `/admin/partidos`.
-2. Busca un partido programado o en vivo y haz clic en **"Cargar Resultado"**.
-3. Ingresa el resultado final (ej: `4 - 2`).
-4. El backend ejecutará el `BetSettlementService`, determinará las apuestas ganadas/perdidas/anuladas, acreditará los puntos a los ganadores y enviará notificaciones.
+2. Busca un partido finalizado y haz clic en **"Cargar Resultado"**.
+3. Ingresa el marcador final (ej: `4 - 2`).
+4. El backend ejecutará el `BetSettlementService`, evaluará cada pronóstico registrado, otorgará los puntos correspondientes (6 o 3 pts), actualizará la Tabla General y los Grupos Privados, y enviará notificaciones.
 
 ---
 
@@ -109,16 +108,16 @@ futsalbet/
 │   │   ├── controllers/   # Controladores REST
 │   │   ├── middlewares/   # Auth JWT, manejo de errores
 │   │   ├── routes/        # Definición de endpoints
-│   │   ├── services/      # BetSettlementService (resolución automática)
+│   │   ├── services/      # BetSettlementService (resolución automática del Prode)
 │   │   ├── validators/    # Schemas Zod
 │   │   └── utils/         # Cron jobs
 │   └── tests/             # Tests unitarios
 ├── frontend/              # App React + TypeScript + Vite + Tailwind CSS
 │   ├── src/
 │   │   ├── api/           # Cliente Axios con interceptores JWT
-│   │   ├── components/    # Header, Navbar, BetSlip, OddsButton, etc.
-│   │   ├── context/       # AuthContext y BetSlipContext
-│   │   ├── pages/         # Páginas de usuario y panel Admin
+│   │   ├── components/    # Header, Navbar, etc.
+│   │   ├── context/       # AuthContext
+│   │   ├── pages/         # Prode, Tabla, Grupos, Manual, Panel Admin
 │   └── nginx.conf         # Servidor web en producción
 ├── importer/              # Importador desacoplado idempotente
 ├── docker-compose.yml     # Orquestación completa
@@ -134,12 +133,11 @@ futsalbet/
 2. Configura la variable de entorno `VITE_API_URL=https://tu-backend.onrender.com`.
 
 ### Backend (Render / Railway / Vercel)
-1. Crea un servicio Web Service apuntando a `/backend`, o despliega el backend como proyecto independiente en Vercel.
+1. Crea un servicio Web Service apuntando a `/backend`.
 2. Configura las variables de entorno del backend:
-   - `DATABASE_URL=postgresql://...` (usa la URL de conexión completa de Supabase/Neon/Railway, incluyendo `?sslmode=require` si aplica)
+   - `DATABASE_URL=postgresql://...`
    - `JWT_SECRET=super_secret_key`
    - `JWT_EXPIRES_IN=7d`
-   - `INITIAL_POINTS=1000`
    - `CRON_SECRET=futsalbet_cron_secret_2026`
 
 ### Base de Datos (Neon / Supabase / Railway)
@@ -151,4 +149,3 @@ futsalbet/
 ## 📄 Licencia
 
 Este proyecto se distribuye bajo la licencia MIT con fines educativos y recreativos.
-# futsalbet

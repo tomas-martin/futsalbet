@@ -14,10 +14,8 @@ import {
   Users,
   Award,
   Lock,
-  Sparkles,
   ShieldAlert,
-  ArrowRight,
-  Star
+  ArrowRight
 } from 'lucide-react';
 
 interface ManualSection {
@@ -41,27 +39,27 @@ export const Manual: React.FC = () => {
       id: 'user-register',
       category: 'user',
       title: '1. Registro e Inicio de Sesión',
-      subtitle: 'Crea tu cuenta gratuita y recibe 1.000 Puntos Virtuales',
+      subtitle: 'Crea tu cuenta gratuita y comienza a pronosticar marcadores',
       icon: User,
       badge: 'Paso inicial',
       steps: [
-        { stepNumber: 1, title: 'Crear Cuenta', description: 'Haz clic en "Registrarse" arriba a la derecha e ingresa tu email, username y clave.' },
-        { stepNumber: 2, title: 'Bono de Bienvenida', description: 'Al registrarte recibirás automáticamente 1.000 PUNTOS VIRTUALES para empezar a jugar.' },
-        { stepNumber: 3, title: 'Acceso Directo', description: 'Tu sesión se mantendrá activa de forma segura. Podrás revisar tus datos en la sección Perfil.' }
+        { stepNumber: 1, title: 'Crear Cuenta', description: 'Haz clic en "Registrarse" arriba a la derecha e ingresa tu email, username y contraseña.' },
+        { stepNumber: 2, title: 'Acceso Inmediato', description: 'Al registrarte accederás directamente a la plataforma para participar en el Prode de FEFUSA Mendoza.' },
+        { stepNumber: 3, title: 'Tu Perfil', description: 'Podrás consultar tu estadística personal, aciertos exactos y ranking global desde la sección Perfil.' }
       ]
     },
     {
       id: 'user-prode',
       category: 'user',
-      title: '2. Cómo Realizar Pronósticos y Apuestas',
-      subtitle: 'Pronostica partidos de FEFUSA Mendoza y multiplica tus puntos',
+      title: '2. Cómo Realizar Pronósticos (Prode)',
+      subtitle: 'Pronostica marcadores de partidos de FEFUSA Mendoza y suma puntos',
       icon: Target,
       badge: 'Recomendado',
       steps: [
-        { stepNumber: 1, title: 'Explorar Partidos', description: 'Ve a "Partidos" o "Prode" para explorar la lista de encuentros disponibles.' },
-        { stepNumber: 2, title: 'Seleccionar Pronóstico', description: 'Selecciona la cuota del equipo local, empate o visitante. La selección se agregará al BetSlip.' },
-        { stepNumber: 3, title: 'Apuestas Combinadas', description: 'Agrega 2 o más partidos para multiplicar sus cuotas automáticamente en un boleto combinado.' },
-        { stepNumber: 4, title: 'Confirmar Pronóstico', description: 'Ingresa el monto de puntos virtuales a jugar y presiona "CONFIRMAR PRONÓSTICO".' }
+        { stepNumber: 1, title: 'Explorar Partidos', description: 'Ve a "Prode" o "Partidos" para explorar la lista de encuentros disponibles de la fecha.' },
+        { stepNumber: 2, title: 'Ingresar Marcador', description: 'Ingresa la cantidad de goles esperada para el equipo Local y el equipo Visitante.' },
+        { stepNumber: 3, title: 'Guardar Pronósticos', description: 'Haz clic en "Guardar Pronóstico" en cada partido o "Guardar todos" para enviar la fecha.' },
+        { stepNumber: 4, title: 'Límite de Edición', description: 'Puedes modificar tus marcadores las veces que quieras hasta la hora exacta de inicio del partido.' }
       ]
     },
     {
@@ -72,22 +70,22 @@ export const Manual: React.FC = () => {
       icon: Users,
       badge: 'Social',
       steps: [
-        { stepNumber: 1, title: 'Crear o Unirse a Grupo', description: 'Ingresa a "Grupos Privados" en el menú superior.' },
+        { stepNumber: 1, title: 'Crear o Unirse a Grupo', description: 'Ingresa a "Grupos Privados" en el menú principal.' },
         { stepNumber: 2, title: 'Código de Invitación', description: 'Genera un código único al crear tu grupo y compártelo por WhatsApp con tus amigos.' },
-        { stepNumber: 3, title: 'Tabla Exclusiva', description: 'El grupo mantiene un ranking independiente donde compiten solo los miembros aceptados.' }
+        { stepNumber: 3, title: 'Tabla Exclusiva', description: 'El grupo mantiene un ranking independiente calculado con los puntos del Prode de cada miembro.' }
       ]
     },
     {
       id: 'user-leaderboard',
       category: 'user',
-      title: '4. Tabla General y Posiciones',
+      title: '4. Tabla General y Mis Pronósticos',
       subtitle: 'Escala posiciones demostrando tu conocimiento del Futsal Mendocino',
       icon: Trophy,
       badge: 'Ranking',
       steps: [
-        { stepNumber: 1, title: 'Acumulación de Puntos', description: 'Sumas puntos por cada partido ganado y por aciertos exactos de marcadores.' },
-        { stepNumber: 2, title: 'Estadísticas en Tiempo Real', description: 'Revisa tu efectividad %, total de aciertos exactos y rachas ganadoras.' },
-        { stepNumber: 3, title: 'Notificaciones', description: 'Recibes alertas al finalizar los partidos informándote cuántos puntos ganaste.' }
+        { stepNumber: 1, title: 'Acumulación de Puntos', description: 'Sumas 6 puntos por acertar el resultado exacto y 3 puntos por acertar la tendencia (ganador o empate).' },
+        { stepNumber: 2, title: 'Mis Pronósticos', description: 'Revisa en "Mis Pronósticos" tus marcadores guardados, aciertos y resultados finales.' },
+        { stepNumber: 3, title: 'Notificaciones', description: 'Recibes alertas al finalizar los partidos informándote cuántos puntos sumaste en la fecha.' }
       ]
     },
     {
@@ -99,47 +97,34 @@ export const Manual: React.FC = () => {
       badge: 'Solo Admin',
       steps: [
         { stepNumber: 1, title: 'Acceso al Panel', description: 'Inicia sesión como Admin y presiona el botón "Panel Admin" en la barra superior.' },
-        { stepNumber: 2, title: 'Crear Partido', description: 'Navega a /admin/partidos, selecciona equipos, fecha/hora, cancha y fase del torneo.' },
+        { stepNumber: 2, title: 'Crear o Editar Partido', description: 'Navega a /admin/partidos, selecciona equipos, fecha/hora, cancha y fase del torneo.' },
         { stepNumber: 3, title: 'Estado del Partido', description: 'Gestiona la transición entre SCHEDULED (Programado), LIVE (En Vivo) y FINISHED (Finalizado).' }
-      ]
-    },
-    {
-      id: 'admin-odds',
-      category: 'admin',
-      title: '2. Ajuste de Cuotas Virtuales',
-      subtitle: 'Configura las cuotas multiplicadoras para cada enfrentamiento',
-      icon: Sparkles,
-      badge: 'Solo Admin',
-      steps: [
-        { stepNumber: 1, title: 'Seleccionar Partido', description: 'Ingresa a /admin/predictions o /admin/partidos.' },
-        { stepNumber: 2, title: 'Modificar Cuotas', description: 'Ajusta los valores de Local, Empate o Visitante antes de que el partido comience.' },
-        { stepNumber: 3, title: 'Auditoría Transparente', description: 'Cada actualización de cuotas queda asentada automáticamente en AuditLogs.' }
       ]
     },
     {
       id: 'admin-settlement',
       category: 'admin',
-      title: '3. Carga de Resultado y Cierre Automático',
-      subtitle: 'El motor BetSettlement resuelve y acredita puntos automáticamente',
+      title: '2. Carga de Resultado y Cierre Automático',
+      subtitle: 'El motor del sistema procesa marcadores y suma puntos automáticamente',
       icon: CheckCircle2,
       badge: 'Solo Admin',
       steps: [
-        { stepNumber: 1, title: 'Finalizar Encuentro', description: 'Cambia el estado del partido a FINISHED e ingresa el marcador final (ej: 4 - 2).' },
-        { stepNumber: 2, title: 'Ejecución de BetSettlement', description: 'El backend procesa todas las apuestas abiertas en background.' },
-        { stepNumber: 3, title: 'Acreditación de Puntos', description: 'Las apuestas ganadoras acreditan los puntos virtuales inmediatamente a los usuarios.' }
+        { stepNumber: 1, title: 'Finalizar Encuentro', description: 'Cambia el estado del partido a FINISHED e ingresa el marcador final real (ej: 4 - 2).' },
+        { stepNumber: 2, title: 'Cierre Automático', description: 'El backend procesa todas las predicciones registradas para ese partido.' },
+        { stepNumber: 3, title: 'Acreditación de Puntos', description: 'El sistema otorga 6 o 3 puntos a cada usuario según corresponda y actualiza la Tabla General.' }
       ]
     },
     {
       id: 'rules-scoring',
       category: 'rules',
       title: 'Sistema de Puntuación y Bloqueo',
-      subtitle: 'Conoce cómo se calculan las recompensas y restricciones',
+      subtitle: 'Conoce cómo se calculan los puntos en el Prode y sus restricciones',
       icon: Award,
       badge: 'Reglas',
       details: [
-        '🎯 Resultado Exacto (Prode): Otorga 6 Puntos directos en el ranking.',
-        '⚽ Tendencia Ganadora / Empate: Otorga 3 Puntos directos si acertaste el ganador sin dar el marcador exacto.',
-        '🎰 Cuotas Virtuales (BetSlip): Multiplica los puntos virtuales apostados por el coeficiente de la cuota elegida.',
+        '🎯 Resultado Exacto (Prode): Otorga 6 Puntos directos en la tabla general.',
+        '⚽ Tendencia Ganadora / Empate: Otorga 3 Puntos directos si acertaste el ganador o el empate sin dar el marcador exacto.',
+        '❌ Sin Acierto: Otorga 0 Puntos.',
         '🔒 Bloqueo Automático: Al llegar la hora exacta de inicio del partido, todos los pronósticos sobre ese encuentro quedan bloqueados sin excepción.'
       ]
     },
@@ -147,13 +132,13 @@ export const Manual: React.FC = () => {
       id: 'faq-points',
       category: 'faq',
       title: '¿FutsalBet requiere o utiliza dinero real?',
-      subtitle: 'Información legal sobre el uso de puntos virtuales',
+      subtitle: 'Información sobre el funcionamiento recreativo',
       icon: ShieldAlert,
       badge: 'FAQ',
       details: [
-        '❌ NO. FutsalBet es una plataforma 100% recreativa y educativa.',
-        '🚫 No existe integración con Mercado Pago, tarjetas ni transferencias bancarias.',
-        '🏆 El único fin es la entretención y competición deportiva entre seguidores del futsal mendocino.'
+        '❌ NO. FutsalBet es una plataforma 100% recreativa de Prode.',
+        '🚫 No existe dinero real, apuestas monetarias, ni integración con Mercado Pago o bancos.',
+        '🏆 El único fin es el entretenimiento y la competición deportiva entre seguidores del futsal mendocino.'
       ]
     }
   ];
@@ -193,7 +178,7 @@ export const Manual: React.FC = () => {
             Manual de Usuario <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-400 bg-clip-text text-transparent">FutsalBet</span>
           </h1>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Aprende a realizar tus pronósticos, multiplicar tus puntos virtuales, competir en grupos privados y dominar todas las herramientas para usuarios y administradores.
+            Aprende a realizar tus pronósticos de marcadores exactos, sumar puntos, competir en grupos privados y dominar todas las herramientas para usuarios y administradores.
           </p>
         </div>
 
@@ -218,7 +203,7 @@ export const Manual: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por palabra clave (ej. BetSlip, Combinada, Admin, Puntos...)"
+            placeholder="Buscar por palabra clave (ej. Prode, Marcador, Puntos, Admin...)"
             className="w-full bg-slate-900 border border-slate-800 focus:border-purple-500 rounded-2xl pl-12 pr-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition shadow-inner"
           />
           {searchQuery && (
