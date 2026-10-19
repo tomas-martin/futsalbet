@@ -17,7 +17,16 @@ export const PushNotificationCard: React.FC = () => {
       return;
     }
     setPermission(Notification.permission);
-    setHasToken(!!localStorage.getItem('futsalbet_fcm_token'));
+    const token = localStorage.getItem('futsalbet_fcm_token');
+    setHasToken(!!token);
+
+    // Si ya tiene permiso y token en el navegador, asegurar sincronización con la base de datos
+    if (Notification.permission === 'granted' && token) {
+      apiClient.post('/notifications/device-token', {
+        token,
+        platform: 'web',
+      }).catch((e) => console.warn('Sincronizando token con backend:', e?.message));
+    }
   }, []);
 
   const handleEnable = async () => {
@@ -69,6 +78,15 @@ export const PushNotificationCard: React.FC = () => {
     setTestLoading(true);
     setFeedback(null);
     try {
+      // Re-sincronizar el token local con el backend por si no estaba guardado en la base de datos
+      const storedToken = localStorage.getItem('futsalbet_fcm_token');
+      if (storedToken) {
+        await apiClient.post('/notifications/device-token', {
+          token: storedToken,
+          platform: 'web',
+        }).catch(() => {});
+      }
+
       const res = await apiClient.post('/notifications/test-push');
       setFeedback({
         type: 'success',
@@ -77,7 +95,7 @@ export const PushNotificationCard: React.FC = () => {
     } catch (err: any) {
       setFeedback({
         type: 'error',
-        message: err.response?.data?.error || 'Error al enviar notificación de prueba. Asegúrate de tener configurado Firebase en el backend.',
+        message: err.response?.data?.error || err.response?.data?.message || 'Error al enviar notificación de prueba. Asegúrate de tener configurado Firebase en el backend.',
       });
     } finally {
       setTestLoading(false);

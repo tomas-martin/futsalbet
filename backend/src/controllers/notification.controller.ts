@@ -114,7 +114,7 @@ export const sendTestPush = async (req: AuthRequest, res: Response, next: NextFu
       url: '/prode',
     });
 
-    // También guardar una notificación interna
+    // Guardar también una notificación interna en el historial
     await prisma.notification.create({
       data: {
         userId,
@@ -124,8 +124,28 @@ export const sendTestPush = async (req: AuthRequest, res: Response, next: NextFu
       },
     });
 
+    if (result.deviceCount === 0) {
+      res.status(400).json({
+        error: 'No se encontró ningún dispositivo registrado para tu cuenta. Prueba desactivar y volver a activar las notificaciones.',
+        successCount: 0,
+        failureCount: 0,
+      });
+      return;
+    }
+
+    if (!result.configured) {
+      res.status(503).json({
+        error: 'El servicio de notificaciones Push (Firebase Admin) no está configurado en el servidor backend.',
+        successCount: 0,
+        failureCount: 0,
+      });
+      return;
+    }
+
     res.json({
-      message: 'Prueba de notificación enviada',
+      message: result.success > 0
+        ? '¡Notificación de prueba enviada con éxito a tu dispositivo!'
+        : 'Firebase procesó el envío, pero el dispositivo no confirmó la recepción.',
       successCount: result.success,
       failureCount: result.failure,
     });

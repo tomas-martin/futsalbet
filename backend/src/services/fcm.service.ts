@@ -76,14 +76,17 @@ export interface PushPayload {
  * Envía una notificación push a una lista de tokens de dispositivo.
  * Limpia automáticamente los tokens inválidos de la base de datos.
  */
-export async function sendPushToTokens(tokens: string[], payload: PushPayload): Promise<{ success: number; failure: number }> {
+export async function sendPushToTokens(
+  tokens: string[],
+  payload: PushPayload
+): Promise<{ success: number; failure: number; configured: boolean }> {
   if (!tokens || tokens.length === 0) {
-    return { success: 0, failure: 0 };
+    return { success: 0, failure: 0, configured: true };
   }
 
   if (!initializeFirebase() || !fcmApp) {
     console.warn('⚠️ Se intentó enviar push pero Firebase Admin no está configurado.');
-    return { success: 0, failure: 0 };
+    return { success: 0, failure: 0, configured: false };
   }
 
   try {
@@ -132,10 +135,10 @@ export async function sendPushToTokens(tokens: string[], payload: PushPayload): 
       }).catch((e) => console.error('Error al limpiar tokens obsoletos:', e));
     }
 
-    return { success: response.successCount, failure: response.failureCount };
+    return { success: response.successCount, failure: response.failureCount, configured: true };
   } catch (error) {
     console.error('❌ Error enviando notificación FCM multicast:', error);
-    return { success: 0, failure: tokens.length };
+    return { success: 0, failure: tokens.length, configured: true };
   }
 }
 
@@ -148,8 +151,11 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
     select: { token: true },
   });
 
-  if (devices.length === 0) return { success: 0, failure: 0 };
-  return sendPushToTokens(devices.map((d) => d.token), payload);
+  if (devices.length === 0) {
+    return { success: 0, failure: 0, configured: true, deviceCount: 0 };
+  }
+  const result = await sendPushToTokens(devices.map((d) => d.token), payload);
+  return { ...result, deviceCount: devices.length };
 }
 
 /**
@@ -160,6 +166,9 @@ export async function sendPushToAll(payload: PushPayload) {
     select: { token: true },
   });
 
-  if (devices.length === 0) return { success: 0, failure: 0 };
-  return sendPushToTokens(devices.map((d) => d.token), payload);
+  if (devices.length === 0) {
+    return { success: 0, failure: 0, configured: true, deviceCount: 0 };
+  }
+  const result = await sendPushToTokens(devices.map((d) => d.token), payload);
+  return { ...result, deviceCount: devices.length };
 }
