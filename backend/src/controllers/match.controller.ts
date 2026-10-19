@@ -5,6 +5,7 @@ import { updateMatchSchema, createMatchSchema, createMatchEventSchema } from '..
 import { PredictionSettlementService } from '../services/predictionSettlement.service';
 import { recomputeStandings } from '../services/standing.service';
 import { MatchStatus } from '@prisma/client';
+import { sendPushToAll } from '../services/fcm.service';
 
 export const getMatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -138,7 +139,7 @@ export const getMatchById = async (req: Request, res: Response, next: NextFuncti
     next(error);
   }
 };
-
+ 
 export const createMatch = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = createMatchSchema.parse(req.body);
@@ -160,7 +161,102 @@ export const createMatch = async (req: AuthRequest, res: Response, next: NextFun
       },
     });
 
+    // Notificar a todos los usuarios activos sobre el nuevo partido disponible en el Prode
+    try {
+      const users = await prisma.user.findMany({
+        where: { isActive: true },
+        select: { id: true },
+      });
+
+      const homeName = match.homeTeam?.name || 'Local';
+      const awayName = match.awayTeam?.name || 'Visitante';
+      const roundText = match.round ? ` (${match.round})` : '';
+      const notifTitle = '⚽ ¡Nuevo partido para el Prode!';
+      const notifMessage = `Se habilitó ${homeName} vs ${awayName}${roundText}. ¡Entrá y cargá tus marcadores para sumar puntos!`;
+
+      if (users.length > 0) {
+        await prisma.notification.createMany({
+          data: users.map((u) => ({
+            userId: u.id,
+            title: notifTitle,
+            message: notifMessage,
+            type: 'NEW_MATCH',
+            data: {
+              matchId: match.id,
+              tournamentId: match.tournamentId,
+              url: '/prode',
+            },
+          })),
+        });
+      }
+
+      // Enviar push a todos los dispositivos registrados
+      await sendPushToAll({
+        title: notifTitle,
+        body: notifMessage,
+        url: '/prode',
+        data: {
+          matchId: match.id,
+          type: 'NEW_MATCH',
+        },
+      });
+    } catch (notifErr) {
+      console.error('Error al emitir notificaciones para el nuevo partido:', notifErr);
+    }
+
     res.status(201).json({ message: 'Partido creado', match });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteMatch = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const match = await prisma.match.findUnique({
+      where: { id },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+      },
+    });
+
+    if (!match) {
+      res.status(404).json({ error: 'Partido no encontrado' });
+      return;
+    }
+
+    const wasFinished = match.status === MatchStatus.FINISHED;
+    const tournamentId = match.tournamentId;
+
+    // Eliminar el partido (las predicciones y eventos asociados se eliminan en cascada)
+    await prisma.match.delete({
+      where: { id },
+    });
+
+    // Si estaba finalizado, recalcular tabla de posiciones
+    if (wasFinished) {
+      await recomputeStandings(tournamentId);
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: 'DELETE_MATCH',
+        entity: 'Match',
+        entityId: id,
+        oldData: {
+          round: match.round,
+          homeTeam: match.homeTeam?.name,
+          awayTeam: match.awayTeam?.name,
+          status: match.status,
+          scheduledAt: match.scheduledAt,
+        },
+      },
+    });
+
+    res.json({ message: 'Partido eliminado correctamente' });
   } catch (error) {
     next(error);
   }

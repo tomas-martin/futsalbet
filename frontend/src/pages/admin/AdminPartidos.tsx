@@ -16,6 +16,7 @@ import {
   ExternalLink,
   MapPin,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 
 /**
@@ -97,6 +98,26 @@ export const AdminPartidos: React.FC = () => {
     onError: (err: any) => alert(err?.response?.data?.error || 'Error al actualizar partido'),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/matches/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
+      alert('Partido eliminado correctamente');
+    },
+    onError: (err: any) => alert(err?.response?.data?.error || 'Error al eliminar partido'),
+  });
+
+  const handleDeleteMatch = (match: any) => {
+    const home = match.homeTeam?.name || 'Local';
+    const away = match.awayTeam?.name || 'Visitante';
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar el partido ${home} vs ${away}?\n\nEsta acción no se puede deshacer y también eliminará las predicciones asociadas.`
+    );
+    if (confirmed) {
+      deleteMutation.mutate(match.id);
+    }
+  };
+
   const handleSettleMatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMatch) return;
@@ -115,10 +136,14 @@ export const AdminPartidos: React.FC = () => {
     }
   };
 
-  // Obtener lista única de Fechas disponibles para la barra de pestañas
+  // Obtener lista de Fechas disponibles para la barra de pestañas (incluyendo las 15 fechas del torneo)
   const allRounds = useMemo(() => {
     const rawMatches = matchesData?.data || [];
     const set = new Set<string>();
+    // Pre-poblar las 15 fechas del torneo por defecto
+    for (let i = 1; i <= 15; i++) {
+      set.add(`Fecha ${i}`);
+    }
     for (const m of rawMatches) {
       set.add(normalizeRoundName(m.round));
     }
@@ -458,6 +483,14 @@ export const AdminPartidos: React.FC = () => {
                       >
                         Predicciones
                       </button>
+                      <button
+                        onClick={() => handleDeleteMatch(m)}
+                        disabled={deleteMutation.isPending}
+                        title="Eliminar Partido"
+                        className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs transition flex items-center justify-center"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -541,6 +574,16 @@ export const AdminPartidos: React.FC = () => {
                             className="px-3 py-1.5 bg-sky-600/80 hover:bg-sky-500 text-white font-bold rounded-xl text-xs transition"
                           >
                             Predicciones
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteMatch(m)}
+                            disabled={deleteMutation.isPending}
+                            title="Eliminar Partido"
+                            className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold rounded-xl text-xs transition inline-flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Eliminar</span>
                           </button>
                         </td>
                       </tr>
@@ -650,7 +693,7 @@ export const AdminPartidos: React.FC = () => {
   );
 };
 
-// OPCIONES RÁPIDAS DE FECHAS
+// OPCIONES RÁPIDAS DE FECHAS (15 FECHAS POR TORNEO + PLAYOFFS)
 const QUICK_ROUNDS = [
   'Fecha 1',
   'Fecha 2',
@@ -662,6 +705,11 @@ const QUICK_ROUNDS = [
   'Fecha 8',
   'Fecha 9',
   'Fecha 10',
+  'Fecha 11',
+  'Fecha 12',
+  'Fecha 13',
+  'Fecha 14',
+  'Fecha 15',
   'Cuartos de Final',
   'Semifinal',
   'Final',

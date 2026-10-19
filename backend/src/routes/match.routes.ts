@@ -7,6 +7,7 @@ import {
   getMatchById,
   createMatch,
   updateMatch,
+  deleteMatch,
   addMatchEvent,
   settleMatch,
 } from '../controllers/match.controller';
@@ -23,5 +24,6 @@ matchRouter.get('/:id', getMatchById);
 // Admin routes
 matchRouter.post('/', authenticate, requireAdmin, createMatch);
 matchRouter.put('/:id', authenticate, requireAdmin, updateMatch);
+matchRouter.delete('/:id', authenticate, requireAdmin, deleteMatch);
 matchRouter.post('/:id/events', authenticate, requireAdmin, addMatchEvent);
 matchRouter.post('/:id/settle', authenticate, requireAdmin, settleMatch);

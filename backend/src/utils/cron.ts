@@ -86,50 +86,112 @@ export function startCronJobs() {
     }
   });
 
-  // Cada hora: Notificar partidos que se juegan en las próximas 24 horas (recordatorio)
-  cron.schedule('0 * * * *', async () => {
-    try {
-      const now = new Date();
-      const in23Hours = new Date(now.getTime() + 23 * 60 * 60 * 1000);
-      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  // Cada 10 minutos: Notificar partidos que se juegan en las próximas 24 horas (recordatorio)
+  cron.schedule('*/10 * * * *', async () => {
+    await checkAndSend24hReminders();
+  });
 
-      const matchesSoon = await prisma.match.findMany({
-        where: {
-          status: MatchStatus.SCHEDULED,
-          scheduledAt: {
-            gte: in23Hours,
-            lt: in24Hours,
-          },
+  // Ejecución inmediata al arrancar para no perder partidos próximos
+  checkAndSend24hReminders().catch((err) =>
+    console.error('Error en chequeo inicial de recordatorios 24h:', err)
+  );
+}
+
+/**
+ * Revisa partidos programados en las próximas 24 horas y envía recordatorio in-app y push
+ * evitando duplicar notificaciones para el mismo partido.
+ */
+export async function checkAndSend24hReminders() {
+  try {
+    const now = new Date();
+    // Ventana: desde ahora hasta dentro de 24 horas y 30 minutos
+    const in24HoursWindow = new Date(now.getTime() + (24 * 60 + 30) * 60 * 1000);
+
+    const matchesSoon = await prisma.match.findMany({
+      where: {
+        status: MatchStatus.SCHEDULED,
+        scheduledAt: {
+          gt: now,
+          lte: in24HoursWindow,
         },
-        include: {
-          homeTeam: true,
-          awayTeam: true,
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        tournament: true,
+      },
+    });
+
+    if (matchesSoon.length === 0) return;
+
+    // Verificar cuáles ya tienen notificación de recordatorio 24h emitida
+    const existingReminders = await prisma.notification.findMany({
+      where: {
+        type: 'MATCH_REMINDER_24H',
+      },
+      select: {
+        data: true,
+      },
+    });
+
+    const notifiedMatchIds = new Set<string>();
+    for (const rem of existingReminders) {
+      if (rem.data && typeof rem.data === 'object' && 'matchId' in (rem.data as any)) {
+        notifiedMatchIds.add(String((rem.data as any).matchId));
+      }
+    }
+
+    const pendingMatches = matchesSoon.filter((m) => !notifiedMatchIds.has(m.id));
+    if (pendingMatches.length === 0) return;
+
+    const users = await prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+
+    const { sendPushToAll } = await import('../services/fcm.service');
+
+    for (const match of pendingMatches) {
+      const home = match.homeTeam.shortName || match.homeTeam.name;
+      const away = match.awayTeam.shortName || match.awayTeam.name;
+      const roundStr = match.round ? ` (${match.round})` : '';
+
+      const title = '⏳ ¡Falta 1 día para el partido!';
+      const message = `Mañana se juega ${home} vs ${away}${roundStr}. ¡Cargá tu pronóstico en el Prode antes de que empiece!`;
+
+      // 1. Notificación in-app en la base de datos para todos los usuarios activos
+      if (users.length > 0) {
+        await prisma.notification.createMany({
+          data: users.map((u) => ({
+            userId: u.id,
+            title,
+            message,
+            type: 'MATCH_REMINDER_24H',
+            data: {
+              matchId: match.id,
+              tournamentId: match.tournamentId,
+              url: '/prode',
+            },
+          })),
+        });
+      }
+
+      // 2. Notificación push a todos los dispositivos registrados
+      await sendPushToAll({
+        title,
+        body: message,
+        url: '/prode',
+        data: {
+          matchId: match.id,
+          type: 'MATCH_REMINDER_24H',
         },
       });
 
-      if (matchesSoon.length > 0) {
-        const { sendPushToAll } = await import('../services/fcm.service');
-        const matchSummary = matchesSoon
-          .slice(0, 2)
-          .map((m) => `${m.homeTeam.shortName || m.homeTeam.name} vs ${m.awayTeam.shortName || m.awayTeam.name}`)
-          .join(', ');
-
-        const text = matchesSoon.length === 1
-          ? `Mañana se juega: ${matchSummary}. ¡Carga tu pronóstico antes del inicio!`
-          : `Mañana hay ${matchesSoon.length} partidos (${matchSummary}...). ¡Carga tus pronósticos!`;
-
-        await sendPushToAll({
-          title: '⏳ ¡Falta 1 día para la fecha de Futsal!',
-          body: text,
-          url: '/prode',
-        });
-
-        console.log(`📢 Notificación push de 24h enviada para ${matchesSoon.length} partidos.`);
-      }
-    } catch (error) {
-      console.error('Error en Cron de recordatorio 24h:', error);
+      console.log(`📢 Recordatorio de 24h enviado para ${home} vs ${away} (ID: ${match.id})`);
     }
-  });
+  } catch (error) {
+    console.error('Error al procesar recordatorios de 24h:', error);
+  }
 }
 
 /**
@@ -138,14 +200,33 @@ export function startCronJobs() {
 export async function notifyNewMatchesAvailable(count: number, tournamentName?: string) {
   try {
     const { sendPushToAll } = await import('../services/fcm.service');
+    const title = '⚽ ¡Nuevos partidos disponibles para Prode!';
     const msg = tournamentName
       ? `Se habilitaron ${count} nuevos partidos en ${tournamentName}. ¡Entrá y suma puntos para el torneo!`
       : `Se habilitaron ${count} nuevos partidos para pronosticar. ¡Ingresa tus marcadores!`;
 
+    const users = await prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+
+    if (users.length > 0) {
+      await prisma.notification.createMany({
+        data: users.map((u) => ({
+          userId: u.id,
+          title,
+          message: msg,
+          type: 'NEW_MATCH',
+          data: { url: '/prode' },
+        })),
+      });
+    }
+
     await sendPushToAll({
-      title: '⚽ ¡Nuevos partidos disponibles para Prode!',
+      title,
       body: msg,
       url: '/prode',
+      data: { type: 'NEW_MATCH' },
     });
   } catch (error) {
     console.error('Error al notificar nuevos partidos:', error);
