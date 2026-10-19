@@ -73,10 +73,21 @@ export const Partidos: React.FC = () => {
               key={match.id}
               className="bg-slate-900 border border-slate-800 hover:border-purple-800/60 rounded-3xl p-4 sm:p-5 transition space-y-4 shadow-lg"
             >
-              <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3">
-                <span className="font-bold text-purple-400 truncate max-w-[180px] sm:max-w-[220px]">
-                  {match.tournament?.name}
-                </span>
+              <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-3 gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="font-bold text-purple-400 truncate max-w-[140px] sm:max-w-[200px]">
+                    {match.tournament?.name}
+                  </span>
+                  {match.round && (
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 border ${
+                      /cuartos|semi|final/i.test(match.round)
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-slate-800 text-slate-300 border-slate-700/60'
+                    }`}>
+                      {match.round}
+                    </span>
+                  )}
+                </div>
                 {tab === 'live' ? (
                   <span className="bg-rose-500/20 text-rose-400 border border-rose-500/40 px-2 py-0.5 rounded-full font-black text-[10px]">
                     MINUTO {match.minute}'

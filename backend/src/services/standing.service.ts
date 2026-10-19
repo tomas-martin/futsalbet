@@ -17,10 +17,21 @@ interface TeamStats {
 }
 
 /**
+ * Checks whether a match round belongs to a playoff phase rather than
+ * the regular season (Fechas 1 to 15).
+ */
+export function isPlayoffRound(round?: string | null): boolean {
+  if (!round || !round.trim()) return false;
+  return /cuartos|semi|final|playoff|eliminatoria/i.test(round.trim());
+}
+
+/**
  * Recomputes the standings table of a tournament from its FINISHED matches.
  * Used when an admin loads a match result so the table stays in sync with the
  * played matches. Teams without finished matches are kept with 0 points so the
  * table always shows every participant.
+ * Note: Playoff matches (Cuartos, Semifinal, Final) are excluded from the regular
+ * season standings table.
  */
 export async function recomputeStandings(tournamentId: string): Promise<number> {
   const matches = await prisma.match.findMany({
@@ -35,8 +46,13 @@ export async function recomputeStandings(tournamentId: string): Promise<number> 
       awayTeamId: true,
       homeScore: true,
       awayScore: true,
+      round: true,
     },
   });
+
+  // Standings table represents the 15-date regular phase.
+  // Knockout rounds (Cuartos, Semifinal, Final) do not alter league standings points.
+  const regularMatches = matches.filter((m) => !isPlayoffRound(m.round));
 
   const existing = await prisma.standing.findMany({
     where: { tournamentId },
@@ -65,7 +81,7 @@ export async function recomputeStandings(tournamentId: string): Promise<number> 
     });
   }
 
-  for (const m of matches) {
+  for (const m of regularMatches) {
     const home = stats.get(m.homeTeamId);
     const away = stats.get(m.awayTeamId);
     if (!home || !away) continue;

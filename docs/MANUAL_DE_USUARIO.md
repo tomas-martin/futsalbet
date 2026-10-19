@@ -41,7 +41,16 @@ Bienvenido al **Manual de Usuario oficial de FutsalBet**, la plataforma recreati
   - **3 Puntos:** Si aciertas el ganador o el empate, pero no el marcador exacto (ej. pronosticaste 2-0 y terminó 4-1).
   - **0 Puntos:** Si no acertaste el ganador ni el empate.
 
-### 3. Carga y Edición de Pronósticos
+### 3. Estructura del Torneo y Fases (Fase Regular y Playoffs)
+- **Fase Regular (15 Fechas):** Compiten 16 equipos en formato todos contra todos en 15 fechas.
+- **Clasificación a Cuartos de Final:** Los **8 primeros equipos** de la Tabla de Posiciones al finalizar las 15 fechas obtienen el pasaje a la Fase Final de Playoffs.
+- **Playoffs por el Título:**
+  - **Cuartos de Final:** 8 equipos en llaves de eliminación directa (1° vs 8°, 2° vs 7°, 3° vs 6°, 4° vs 5°).
+  - **Semifinales:** Los 4 ganadores de cuartos.
+  - **Gran Final:** Los 2 mejores equipos disputan el título de campeón del Futsal Mendocino.
+- **Prode en Playoffs:** Todos los partidos de la Fase Final (Cuartos, Semis y Final) también están disponibles para pronosticar y suman puntos para el Prode.
+
+### 4. Carga y Edición de Pronósticos
 1. Navega a la sección **"Prode"** o **"Partidos"**.
 2. Ingresa la cantidad de goles esperada para el equipo Local y para el equipo Visitante en los encuentros programados.
 3. Puedes hacer clic en **"Guardar Pronóstico"** en cada partido individualmente o en **"Guardar todos los pronósticos"** para enviar la fecha completa.

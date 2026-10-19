@@ -29,6 +29,9 @@ function normalizeRoundName(round?: string | null): string {
   if (match) {
     return `Fecha ${match[1]}`;
   }
+  if (/cuartos/i.test(clean)) return 'Cuartos de Final';
+  if (/semi/i.test(clean)) return 'Semifinal';
+  if (/final/i.test(clean) && !/cuartos|semi|octavos/i.test(clean)) return 'Final';
   return clean;
 }
 
@@ -316,21 +319,29 @@ export const AdminPartidos: React.FC = () => {
             ).length;
 
             const isSelected = selectedRound === roundName;
+            const isPlayoff = /cuartos|semi|final/i.test(roundName);
 
             return (
               <button
                 key={roundName}
                 onClick={() => setSelectedRound(roundName)}
-                className={`whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                className={`whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                   isSelected
                     ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                    : isPlayoff
+                    ? 'bg-amber-950/40 text-amber-300 hover:bg-amber-900/50 border border-amber-700/50'
                     : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
                 }`}
               >
+                {isPlayoff && <Trophy className="w-3 h-3 text-amber-400" />}
                 <span>{roundName}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                    isSelected ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-800 text-slate-400'
+                    isSelected
+                      ? 'bg-slate-950/20 text-slate-950'
+                      : isPlayoff
+                      ? 'bg-amber-500/20 text-amber-200'
+                      : 'bg-slate-800 text-slate-400'
                   }`}
                 >
                   {count}

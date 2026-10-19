@@ -63,9 +63,23 @@ export const Manual: React.FC = () => {
       ]
     },
     {
+      id: 'user-tournament-format',
+      category: 'user',
+      title: '3. Formato del Torneo: 15 Fechas y Playoffs',
+      subtitle: 'Conoce cómo funciona la Fase Regular y la definición por el título',
+      icon: Trophy,
+      badge: 'Competencia',
+      steps: [
+        { stepNumber: 1, title: 'Fase Regular (15 Fechas)', description: 'Los 16 equipos compiten en sistema todos contra todos a lo largo de 15 fechas oficiales.' },
+        { stepNumber: 2, title: 'Clasificación a Cuartos', description: 'Los 8 mejores equipos de la tabla de posiciones general avanzan a la fase de eliminación directa (Playoffs).' },
+        { stepNumber: 3, title: 'Playoffs: Cuartos, Semi y Final', description: 'Se disputan los cruces directos (1° vs 8°, 2° vs 7°, 3° vs 6°, 4° vs 5°), luego semifinales y la gran final por la corona mendocina.' },
+        { stepNumber: 4, title: 'Puntos en Todas las Fases', description: 'Tanto las 15 fechas de la Fase Regular como los partidos de Playoffs suman puntos completos para tu Prode.' }
+      ]
+    },
+    {
       id: 'user-groups',
       category: 'user',
-      title: '3. Grupos Privados y Amigos',
+      title: '4. Grupos Privados y Amigos',
       subtitle: 'Compite en ligas privadas creadas exclusivamente para tus amigos o club',
       icon: Users,
       badge: 'Social',
@@ -78,7 +92,7 @@ export const Manual: React.FC = () => {
     {
       id: 'user-leaderboard',
       category: 'user',
-      title: '4. Tabla General y Mis Pronósticos',
+      title: '5. Tabla General y Mis Pronósticos',
       subtitle: 'Escala posiciones demostrando tu conocimiento del Futsal Mendocino',
       icon: Trophy,
       badge: 'Ranking',
