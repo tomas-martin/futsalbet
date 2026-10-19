@@ -53,3 +53,84 @@ export const markAsRead = async (req: AuthRequest, res: Response, next: NextFunc
     next(error);
   }
 };
+
+export const registerDeviceToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { token, platform } = req.body;
+
+    if (!token || typeof token !== 'string') {
+      res.status(400).json({ error: 'El token de dispositivo es obligatorio' });
+      return;
+    }
+
+    const device = await prisma.deviceToken.upsert({
+      where: { token },
+      update: {
+        userId,
+        platform: platform || 'web',
+        updatedAt: new Date(),
+      },
+      create: {
+        userId,
+        token,
+        platform: platform || 'web',
+      },
+    });
+
+    res.json({ message: 'Dispositivo registrado exitosamente para notificaciones', device });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unregisterDeviceToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token } = req.body;
+
+    if (!token || typeof token !== 'string') {
+      res.status(400).json({ error: 'El token es obligatorio' });
+      return;
+    }
+
+    await prisma.deviceToken.deleteMany({
+      where: { token },
+    });
+
+    res.json({ message: 'Dispositivo desvinculado de notificaciones' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const sendTestPush = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const { sendPushToUser } = await import('../services/fcm.service');
+
+    const result = await sendPushToUser(userId, {
+      title: '⚽ ¡FutsalBet Notificaciones Activas!',
+      body: 'Recibirás avisos de nuevos partidos para pronosticar y recordatorios 24hs antes de cada fecha.',
+      url: '/prode',
+    });
+
+    // También guardar una notificación interna
+    await prisma.notification.create({
+      data: {
+        userId,
+        title: '⚽ ¡Notificaciones Push Conectadas!',
+        message: 'Tu dispositivo está listo para recibir avisos de partidos y recordatorios de pronósticos.',
+        type: 'SYSTEM',
+      },
+    });
+
+    res.json({
+      message: 'Prueba de notificación enviada',
+      successCount: result.success,
+      failureCount: result.failure,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Trophy, Award, Shield, User as UserIcon, LogOut, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { PushNotificationCard } from '../components/PushNotificationCard';
 
 export const Perfil: React.FC = () => {
   const { user, logout } = useAuth();
@@ -46,6 +47,10 @@ export const Perfil: React.FC = () => {
           en los partidos de la FEFUSA. Tus pronósticos se bloquean cuando arranca el partido.
         </p>
       </div>
+
+      {/* PUSH NOTIFICATIONS SETTINGS */}
+      <PushNotificationCard />
+
 
       {/* QUICK LINKS GRID */}
       <div className="grid md:grid-cols-3 gap-4">

@@ -46,3 +46,4 @@ temp/
 
 .vercel
 .env*
+*firebase*.json
