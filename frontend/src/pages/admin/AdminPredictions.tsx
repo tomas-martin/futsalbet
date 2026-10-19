@@ -53,9 +53,14 @@ export const AdminPredictions: React.FC = () => {
         <div>
           <select value={selectedMatch ?? ''} onChange={(e) => setSelectedMatch(e.target.value)} className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-xs w-full lg:w-72 max-w-full">
             <option value="">-- Seleccionar Partido --</option>
-            {matches?.map((m: any) => (
-              <option key={m.id} value={m.id}>{m.homeTeam?.name} vs {m.awayTeam?.name} • {new Date(m.scheduledAt).toLocaleString('es-AR', { hour12: false })}</option>
-            ))}
+            {matches?.map((m: any) => {
+              const roundLabel = m.round ? `[${m.round.replace(/Jornada/i, 'Fecha')}] ` : '';
+              return (
+                <option key={m.id} value={m.id}>
+                  {roundLabel}{m.homeTeam?.name} vs {m.awayTeam?.name} • {new Date(m.scheduledAt).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })}
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>

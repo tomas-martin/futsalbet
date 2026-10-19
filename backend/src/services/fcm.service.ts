@@ -25,6 +25,17 @@ function initializeFirebase(): boolean {
       return true;
     }
 
+    // 1.5 Opción: JSON completo de cuenta de servicio en variable de entorno (ideal para Vercel)
+    const jsonEnv = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (jsonEnv) {
+      const serviceAccount = JSON.parse(jsonEnv.trim());
+      fcmApp = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      console.log('✅ Firebase Admin inicializado mediante JSON en variable de entorno');
+      return true;
+    }
+
     // 2. Opción 2: Variables de entorno individuales
     const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
