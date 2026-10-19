@@ -86,32 +86,37 @@ export function startCronJobs() {
     }
   });
 
-  // Cada 10 minutos: Notificar partidos que se juegan en las próximas 24 horas (recordatorio)
+  // Cada 10 minutos: Notificar partidos que se juegan en las próximas 24 horas y 5 horas (recordatorio)
   cron.schedule('*/10 * * * *', async () => {
     await checkAndSend24hReminders();
+    await checkAndSend5hReminders();
   });
 
   // Ejecución inmediata al arrancar para no perder partidos próximos
   checkAndSend24hReminders().catch((err) =>
     console.error('Error en chequeo inicial de recordatorios 24h:', err)
   );
+  checkAndSend5hReminders().catch((err) =>
+    console.error('Error en chequeo inicial de recordatorios 5h:', err)
+  );
 }
 
 /**
- * Revisa partidos programados en las próximas 24 horas y envía recordatorio in-app y push
+ * Revisa partidos programados en las próximas 24 horas (entre 6h y 24.5h) y envía recordatorio in-app y push
  * evitando duplicar notificaciones para el mismo partido.
  */
 export async function checkAndSend24hReminders() {
   try {
     const now = new Date();
-    // Ventana: desde ahora hasta dentro de 24 horas y 30 minutos
+    // Ventana 24h: entre 6h y 24 horas y 30 minutos desde ahora
+    const minTime = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const in24HoursWindow = new Date(now.getTime() + (24 * 60 + 30) * 60 * 1000);
 
     const matchesSoon = await prisma.match.findMany({
       where: {
         status: MatchStatus.SCHEDULED,
         scheduledAt: {
-          gt: now,
+          gt: minTime,
           lte: in24HoursWindow,
         },
       },
@@ -128,10 +133,12 @@ export async function checkAndSend24hReminders() {
     const existingReminders = await prisma.notification.findMany({
       where: {
         type: 'MATCH_REMINDER_24H',
+        createdAt: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
       },
       select: {
         data: true,
       },
+      take: 1000,
     });
 
     const notifiedMatchIds = new Set<string>();
@@ -157,7 +164,7 @@ export async function checkAndSend24hReminders() {
       const roundStr = match.round ? ` (${match.round})` : '';
 
       const title = '⏳ ¡Falta 1 día para el partido!';
-      const message = `Mañana se juega ${home} vs ${away}${roundStr}. ¡Cargá tu pronóstico en el Prode antes de que empiece!`;
+      const message = `Mañana se juega ${home} vs ${away}${roundStr}. ¿Ya cargaste tu resultado en el Prode? ¡Cargalo antes de que comience!`;
 
       // 1. Notificación in-app en la base de datos para todos los usuarios activos
       if (users.length > 0) {
@@ -191,6 +198,112 @@ export async function checkAndSend24hReminders() {
     }
   } catch (error) {
     console.error('Error al procesar recordatorios de 24h:', error);
+  }
+}
+
+/**
+ * Revisa partidos programados en las próximas 5 horas y envía recordatorio in-app y push
+ * por las dudas de que no hayan cargado sus resultados / pronósticos.
+ */
+export async function checkAndSend5hReminders() {
+  try {
+    const now = new Date();
+    // Ventana 5h: entre ahora y 5 horas y 15 minutos desde ahora
+    const in5HoursWindow = new Date(now.getTime() + (5 * 60 + 15) * 60 * 1000);
+
+    const matchesSoon = await prisma.match.findMany({
+      where: {
+        status: MatchStatus.SCHEDULED,
+        scheduledAt: {
+          gt: now,
+          lte: in5HoursWindow,
+        },
+      },
+      include: {
+        homeTeam: true,
+        awayTeam: true,
+        tournament: true,
+      },
+    });
+
+    if (matchesSoon.length === 0) return;
+
+    // Verificar cuáles ya tienen notificación de recordatorio 5h emitida
+    const existingReminders = await prisma.notification.findMany({
+      where: {
+        type: 'MATCH_REMINDER_5H',
+        createdAt: { gte: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000) },
+      },
+      select: {
+        data: true,
+      },
+      take: 1000,
+    });
+
+    const notifiedMatchIds = new Set<string>();
+    for (const rem of existingReminders) {
+      if (rem.data && typeof rem.data === 'object' && 'matchId' in (rem.data as any)) {
+        notifiedMatchIds.add(String((rem.data as any).matchId));
+      }
+    }
+
+    const pendingMatches = matchesSoon.filter((m) => !notifiedMatchIds.has(m.id));
+    if (pendingMatches.length === 0) return;
+
+    const users = await prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+
+    const { sendPushToAll } = await import('../services/fcm.service');
+
+    for (const match of pendingMatches) {
+      const home = match.homeTeam.shortName || match.homeTeam.name;
+      const away = match.awayTeam.shortName || match.awayTeam.name;
+      const roundStr = match.round ? ` (${match.round})` : '';
+
+      // Formatear hora de inicio en hora local de Argentina (UTC-3)
+      const timeStr = new Intl.DateTimeFormat('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Argentina/Buenos_Aires',
+      }).format(new Date(match.scheduledAt));
+
+      const title = '⏰ ¡Faltan pocas horas para el partido!';
+      const message = `Hoy a las ${timeStr} juegan ${home} vs ${away}${roundStr}. ¡Por las dudas de que no hayas cargado tu resultado en el Prode, hacelo ahora antes de que comience!`;
+
+      // 1. Notificación in-app en la base de datos para todos los usuarios activos
+      if (users.length > 0) {
+        await prisma.notification.createMany({
+          data: users.map((u) => ({
+            userId: u.id,
+            title,
+            message,
+            type: 'MATCH_REMINDER_5H',
+            data: {
+              matchId: match.id,
+              tournamentId: match.tournamentId,
+              url: '/prode',
+            },
+          })),
+        });
+      }
+
+      // 2. Notificación push a todos los dispositivos registrados
+      await sendPushToAll({
+        title,
+        body: message,
+        url: '/prode',
+        data: {
+          matchId: match.id,
+          type: 'MATCH_REMINDER_5H',
+        },
+      });
+
+      console.log(`📢 Recordatorio de 5h enviado para ${home} vs ${away} (ID: ${match.id})`);
+    }
+  } catch (error) {
+    console.error('Error al procesar recordatorios de 5h:', error);
   }
 }
 

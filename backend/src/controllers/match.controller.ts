@@ -161,50 +161,87 @@ export const createMatch = async (req: AuthRequest, res: Response, next: NextFun
       },
     });
 
-    // Notificar a todos los usuarios activos sobre el nuevo partido disponible en el Prode
-    try {
-      const users = await prisma.user.findMany({
-        where: { isActive: true },
-        select: { id: true },
-      });
+    res.status(201).json({ message: 'Partido creado', match });
+  } catch (error) {
+    next(error);
+  }
+};
 
-      const homeName = match.homeTeam?.name || 'Local';
-      const awayName = match.awayTeam?.name || 'Visitante';
-      const roundText = match.round ? ` (${match.round})` : '';
-      const notifTitle = '⚽ ¡Nuevo partido para el Prode!';
-      const notifMessage = `Se habilitó ${homeName} vs ${awayName}${roundText}. ¡Entrá y cargá tus marcadores para sumar puntos!`;
+export const notifyRoundMatches = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { round, tournamentId, customMessage } = req.body;
 
-      if (users.length > 0) {
-        await prisma.notification.createMany({
-          data: users.map((u) => ({
-            userId: u.id,
-            title: notifTitle,
-            message: notifMessage,
-            type: 'NEW_MATCH',
-            data: {
-              matchId: match.id,
-              tournamentId: match.tournamentId,
-              url: '/prode',
-            },
-          })),
-        });
-      }
-
-      // Enviar push a todos los dispositivos registrados
-      await sendPushToAll({
-        title: notifTitle,
-        body: notifMessage,
-        url: '/prode',
-        data: {
-          matchId: match.id,
-          type: 'NEW_MATCH',
-        },
-      });
-    } catch (notifErr) {
-      console.error('Error al emitir notificaciones para el nuevo partido:', notifErr);
+    if (!round || typeof round !== 'string') {
+      res.status(400).json({ error: 'El nombre de la fecha o jornada es obligatorio' });
+      return;
     }
 
-    res.status(201).json({ message: 'Partido creado', match });
+    const cleanRound = round.trim();
+
+    // Buscar si hay partidos para esta fecha
+    const where: any = {
+      round: { equals: cleanRound, mode: 'insensitive' },
+    };
+    if (tournamentId && tournamentId !== 'all') {
+      where.tournamentId = tournamentId;
+    }
+
+    const matches = await prisma.match.findMany({
+      where,
+      include: {
+        tournament: { select: { id: true, name: true } },
+      },
+    });
+
+    const tournamentName = matches[0]?.tournament?.name;
+    const matchCount = matches.length;
+
+    const notifTitle = `⚽ ¡Partidos listos de la ${cleanRound}!`;
+    const notifMessage = customMessage?.trim() || (
+      matchCount > 0
+        ? `Ya están disponibles los ${matchCount} partidos de la ${cleanRound}${tournamentName ? ` (${tournamentName})` : ''}. ¡Entrá al Prode y cargá tus resultados antes de que comiencen!`
+        : `Ya podés pronosticar los partidos de la ${cleanRound}. ¡Entrá al Prode y cargá tus resultados antes de que comiencen!`
+    );
+
+    // Obtener todos los usuarios activos
+    const users = await prisma.user.findMany({
+      where: { isActive: true },
+      select: { id: true },
+    });
+
+    if (users.length > 0) {
+      await prisma.notification.createMany({
+        data: users.map((u) => ({
+          userId: u.id,
+          title: notifTitle,
+          message: notifMessage,
+          type: 'ROUND_READY',
+          data: {
+            round: cleanRound,
+            tournamentId: tournamentId || matches[0]?.tournamentId,
+            url: '/prode',
+          },
+        })),
+      });
+    }
+
+    // Enviar push a todos los dispositivos registrados
+    await sendPushToAll({
+      title: notifTitle,
+      body: notifMessage,
+      url: '/prode',
+      data: {
+        round: cleanRound,
+        type: 'ROUND_READY',
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Notificación enviada a ${users.length} usuarios para ${cleanRound}`,
+      userCount: users.length,
+      matchCount,
+    });
   } catch (error) {
     next(error);
   }

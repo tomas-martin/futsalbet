@@ -17,6 +17,7 @@ import {
   MapPin,
   Sparkles,
   Trash2,
+  BellRing,
 } from 'lucide-react';
 
 /**
@@ -63,8 +64,33 @@ export const AdminPartidos: React.FC = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [createDefaultRound, setCreateDefaultRound] = useState<string>('Fecha 1');
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
+  const [notifyingRound, setNotifyingRound] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+
+  const handleNotifyRound = async (roundName: string, tournamentId?: string) => {
+    if (roundName === 'Sin Fecha Asignada') {
+      alert('Debes asignar una Fecha a los partidos antes de poder notificar.');
+      return;
+    }
+
+    const confirmMsg = `¿Deseas enviar una notificación push y en la app a todos los usuarios avisando que están listos los partidos de "${roundName}" para pronosticar en el Prode?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setNotifyingRound(roundName);
+    try {
+      const res = await apiClient.post('/matches/notify-round', {
+        round: roundName,
+        tournamentId: tournamentId !== 'all' ? tournamentId : undefined,
+      });
+
+      alert(`✅ ¡Notificación enviada con éxito!\n\n${res.data?.message || 'Los usuarios han sido notificados.'}`);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || 'Error al enviar la notificación a los usuarios');
+    } finally {
+      setNotifyingRound(null);
+    }
+  };
 
   const { data: matchesData, isLoading } = useQuery({
     queryKey: ['admin-matches'],
@@ -240,7 +266,27 @@ export const AdminPartidos: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {selectedRound !== 'all' && selectedRound !== 'Sin Fecha Asignada' && (
+            <button
+              onClick={() => handleNotifyRound(selectedRound, selectedTournament !== 'all' ? selectedTournament : undefined)}
+              disabled={notifyingRound === selectedRound}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs uppercase shadow-lg shadow-purple-600/20 transition active:scale-95"
+            >
+              {notifyingRound === selectedRound ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Notificando...</span>
+                </>
+              ) : (
+                <>
+                  <BellRing className="w-4 h-4 text-amber-300" />
+                  <span>Notificar {selectedRound}</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             onClick={() => handleOpenCreateForRound()}
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl text-xs uppercase shadow-lg shadow-amber-500/20 transition active:scale-95"
@@ -396,14 +442,36 @@ export const AdminPartidos: React.FC = () => {
                   </div>
                 </div>
 
-                {/* BOTÓN RÁPIDO PARA CREAR PARTIDO EN ESTA FECHA */}
-                <button
-                  onClick={() => handleOpenCreateForRound(group.roundName)}
-                  className="self-start sm:self-auto flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700/80 hover:border-amber-500/40 font-bold rounded-xl text-xs transition"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Agregar a {group.roundName}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* BOTÓN PARA NOTIFICAR FECHA COMPLETA A LOS USUARIOS */}
+                  <button
+                    onClick={() => handleNotifyRound(group.roundName, group.matches[0]?.tournamentId)}
+                    disabled={notifyingRound === group.roundName || group.total === 0}
+                    title={`Avisar a todos los usuarios que los partidos de ${group.roundName} están listos`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs shadow-md shadow-purple-900/30 transition active:scale-95"
+                  >
+                    {notifyingRound === group.roundName ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Notificando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <BellRing className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Notificar {group.roundName} lista</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* BOTÓN RÁPIDO PARA CREAR PARTIDO EN ESTA FECHA */}
+                  <button
+                    onClick={() => handleOpenCreateForRound(group.roundName)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700/80 hover:border-amber-500/40 font-bold rounded-xl text-xs transition"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Agregar a {group.roundName}
+                  </button>
+                </div>
               </div>
 
               {/* LISTA MOBILE (TARJETAS) */}
