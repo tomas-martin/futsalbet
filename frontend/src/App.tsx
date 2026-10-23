@@ -8,6 +8,7 @@ import { Header } from './components/Header';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
 import { Footer } from './components/Footer';
+import { InstallAppBanner } from './components/InstallAppBanner';
 
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
@@ -114,6 +115,7 @@ const AppLayout: React.FC = () => {
         </main>
 
         <Footer />
+        <InstallAppBanner />
         <BottomNav />
       </div>
     </BrowserRouter>
